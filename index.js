@@ -18,5 +18,5 @@ app.get("/", function (req, res) {
     res.send("Server Caro Online")
 })
 
-var port = process.env.PORT
+var port = process.env.PORT || 3000
 app.listen(port)
