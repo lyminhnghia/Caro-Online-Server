@@ -15,7 +15,7 @@ db.sequelize.sync().then(() => {
 })
 
 app.get("/", function (req, res) {
-    res.send("Server Caro Online")
+    res.send("Server Caro Online!")
 })
 
 var port = process.env.PORT || 3000
