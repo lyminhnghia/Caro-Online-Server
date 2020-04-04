@@ -12,7 +12,7 @@ exports.login = (req, res) => {
 		}
 	}).then(users => {
 		if (!users) {
-			return res.send({sucess: false, message:"Tài khoản không tồn tại"});
+			return res.send({success: false, message:"Tài khoản không tồn tại"});
 		}
 
 		var passwordIsValid = bcrypt.compareSync(req.body.password, users.password)
