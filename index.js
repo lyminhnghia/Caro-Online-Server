@@ -1,5 +1,4 @@
 var express = require('express')
-const path = require('path')
 var app = express()
 app.use(express.json())
 const cors = require('cors')
@@ -15,8 +14,8 @@ db.sequelize.sync().then(() => {
     console.log(err.message)
 })
 
-app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.get("/", function (req, res) {
+    res.send("Server Caro Online")
 })
 
 var port = process.env.PORT
