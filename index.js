@@ -1,7 +1,7 @@
 var express = require('express')
 var app = express()
 
-const server = require('https').Server(app)
+const server = require('http').Server(app)
 const io = require('socket.io').listen(server)
 
 app.use(express.json())
@@ -23,4 +23,4 @@ app.get("/", function (req, res) {
 })
 
 var port = process.env.PORT || 3000
-app.listen(port)
+server.listen(port)
