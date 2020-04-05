@@ -1,11 +1,15 @@
 var express = require('express')
 var app = express()
+
+const server = require('https').Server(app)
+const io = require('socket.io').listen(server)
+
 app.use(express.json())
 const cors = require('cors')
 app.use(cors())
 require('dotenv').config()
 
-require('./routes/route')(app)
+require('./routes/route')(app, io)
 const db = require('./configs/db.config')
 
 db.sequelize.sync().then(() => {

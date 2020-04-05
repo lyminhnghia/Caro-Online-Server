@@ -12,19 +12,19 @@ exports.login = (req, res) => {
 		}
 	}).then(users => {
 		if (!users) {
-			return res.send({success: false, message:"Tài khoản không tồn tại"});
+			return res.send({success: false, message:"Username does not exist!"})
 		}
 
 		var passwordIsValid = bcrypt.compareSync(req.body.password, users.password)
 		if (!passwordIsValid) {
-			return res.send({success: false, message:"Mật khẩu không đúng"});
+			return res.send({success: false, message:"Password incorrect!"});
 		}
 		
 		let JwtToken = jwt.sign({ id: users.id }, config.secret, {
 		  	expiresIn: 86400 // token hết hạn sau 24 giờ
 		});
 
-		res.send({success : true, token: JwtToken})
+		res.send({success : true, message: JwtToken})
 		
 	}).catch(err => {
 		res.send({success: false, message: err})
@@ -45,12 +45,12 @@ exports.register = (req, res) => {
                 let JwtToken = jwt.sign({ id: users.id }, config.secret, {
                     expiresIn: 86400 // token hết hạn sau 24 giờ
                 })
-                res.send({success: true, token: JwtToken})
+                res.send({success: true, message: JwtToken})
             }).catch(err => {
                 res.send({success: false, message: err})
             })
         } else {
-            return res.send({success: false, message: 'Tài khoản đã tồn tại!'})
+            return res.send({success: false, message: 'Username exists!'})
         }
     }).catch(err => {
         res.send({success: false, message: err})
