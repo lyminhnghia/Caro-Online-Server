@@ -8,6 +8,7 @@ const waiting = async (io, socket) => {
     const waiting_room = await sequelize.query(`Select roomname, havepassword, timeformove from rooms`,{
         type: sequelize.QueryTypes.SELECT
     })
+    socket.emit('waiting room', waiting_room)
     console.log(user[0].username, user[0].elo, waiting_room)
 }
 
