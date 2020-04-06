@@ -1,6 +1,6 @@
-const db = require('../../configs/db.config')
-const sequelize = db.sequelize
 const socketJwt = require('socketio-jwt')
+
+const waiting = require('./room/waiting-room')
 
 module.exports = (io) => {
 
@@ -8,10 +8,7 @@ module.exports = (io) => {
         secret: 'uet-team-secret',
         timeout: 10000
     })).on('authenticated', async socket => {
-        const user = await sequelize.query(`Select username from users WHERE id = ${socket.decoded_token.id}`,{
-            type: sequelize.QueryTypes.SELECT
-        })
-        console.log(user[0].username)
+        await waiting(io, socket)
     })
 
 }
