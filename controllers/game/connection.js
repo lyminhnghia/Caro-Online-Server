@@ -16,12 +16,21 @@ module.exports = (io) => {
         })
 
         players[socket.id] = {
-            id      : socket.id,
-            username: user[0].username,
-            elo     : user[0].elo
+            id                  : socket.id,
+            username            : user[0].username,
+            elo                 : user[0].elo,
+            waitingListening    : false,
+            watchingListening   : false
         }
+        
+        io.on('call information', data => {
+            console.log(data)
+            io.emit('information player', players[socket.id])
+        })
 
-        io.emit('information player', players[socket.id])
+        io.on('call waiting room', () => {
+            io.emit('list waiting room', rooms)
+        })
 
         socket.on('disconnect', () => {
 
@@ -31,8 +40,6 @@ module.exports = (io) => {
 
             io.emit('disconnect', socket.id)
         })
-
-        console.log(players)
     })
 
 }
