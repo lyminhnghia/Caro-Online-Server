@@ -23,12 +23,12 @@ module.exports = (io) => {
             watchingListening   : false
         }
         
-        io.on('call information', data => {
+        socket.on('call information', data => {
             console.log(data)
             io.emit('information player', players[socket.id])
         })
 
-        io.on('call waiting room', () => {
+        socket.on('call waiting room', () => {
             io.emit('list waiting room', rooms)
         })
 
