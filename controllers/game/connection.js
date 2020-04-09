@@ -6,6 +6,7 @@ const socketJwt = require('socketio-jwt')
 
 module.exports = (io) => {
     const freePlayers = {}
+    const map = []
     const busyPlayers = {}
     const freeRooms = {}
     const busyRooms = {}
@@ -16,6 +17,13 @@ module.exports = (io) => {
         const user = await sequelize.query(`Select username, elo, isLocalImage, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         })
+
+        if (map[user[0].username]) {
+            console.log(map)
+            io.sockets.connected[socket.id].disconnect()
+        } else {
+            map[user[0].username] = socket.id
+        }
 
         socket.emit('server ready')
 
@@ -73,14 +81,14 @@ module.exports = (io) => {
         socket.on('disconnect', () => {
 
             console.log(`Disconnected: ${socket.id}`)
-
+            if (map[user[0].username] === socket.id) {
+                delete map[user[0].username]
+            }
             if (freePlayers[socket.id]) {
                 delete freePlayers[socket.id]
             } else {
                 delete busyPlayers[socket.id]
             }
-
-            io.emit('disconnect', socket.id)
         })
     })
 
