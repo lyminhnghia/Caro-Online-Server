@@ -81,9 +81,10 @@ module.exports = (io) => {
         socket.on('disconnect', () => {
 
             console.log(`Disconnected: ${socket.id}`)
-            if (map[user[0].username] === socket.id) {
-                delete map[user[0].username]
+            if (map[user[0].username] !== socket.id) {
+                return
             }
+            delete map[user[0].username]
             if (freePlayers[socket.id]) {
                 delete freePlayers[socket.id]
             } else {
