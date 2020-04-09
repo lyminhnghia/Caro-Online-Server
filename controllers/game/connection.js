@@ -43,28 +43,50 @@ module.exports = (io) => {
             socket.emit('list player', freePlayers)
         })
 
-        // socket.on('create room', data => {
-        //     rooms[freePlayers[socket.id].username] = {
-        //         hostId          : socket.id,
-        //         joinId          : null,
-        //         password        : data.password,
-        //         timelapse       : data.timelapse,
-        //         rank            : data.rank
-        //     }
-        //     socket.join(data.username)
+        socket.on('list room', () => {
+            let rooms = []
+            for (i in freeRooms) {
+                let host = busyPlayers[map[freeRooms[i].hostname]]
+                let havePassword = freeRooms[i].password !== ""
+                rooms.push({
+                    username: host.username,
+                    isLocalImage: host.isLocalImage,
+                    imageUrl: host.imageUrl,
+                    timelapse: freeRooms[i].timelapse,
+                    rank: freeRooms[i].rank,
+                    elo: host.elo,
+                    havePassword : havePassword
+                })
+            }
+            socket.emit('list room', rooms)
+        })
 
-        //     havePassword = data.password === ''
+        socket.on('create room', data => {
+            freeRooms[socket.id] = {
+                hostname        : freePlayers[socket.id].username,
+                joinname        : null,
+                password        : data.password,
+                timelapse       : data.timelapse,
+                rank            : data.rank
+            }
+        
+            socket.join(socket.id)
 
-        //     io.emit('create room', {
-        //         username            : players[socket.id].username,
-        //         elo                 : players[socket.id].elo,
-        //         isLocalImage        : players[socket.id].isLocalImage,
-        //         imageUrl            : players[socket.id].imageUrl,
-        //         rank                : data.rank,
-        //         timelapse           : data.timelapse,
-        //         havePassword        : havePassword
-        //     })
-        // })
+            havePassword = data.password === ''
+
+            io.emit('create room', {
+                username            : freePlayers[socket.id].username,
+                elo                 : freePlayers[socket.id].elo,
+                isLocalImage        : freePlayers[socket.id].isLocalImage,
+                imageUrl            : freePlayers[socket.id].imageUrl,
+                rank                : data.rank,
+                timelapse           : data.timelapse,
+                havePassword        : havePassword
+            })
+
+            busyPlayers[socket.id] = freePlayers[socket.id]
+            delete freePlayers[socket.id]
+        })
 
         // socket.on('delete room', () =>{
         //     delete rooms[players[socket.id].username]
