@@ -34,13 +34,13 @@ module.exports = (io) => {
             imageUrl            : user[0].imageUrl
         }
         
-        socket.on('call information', data => {
+        socket.on('information', data => {
             console.log(data)
-            io.emit('information player', freePlayers[socket.id])
+            socket.emit('information', freePlayers[socket.id])
         })
 
         socket.on('list player', () => {
-            io.emit('list player', freePlayers)
+            socket.emit('list player', freePlayers)
         })
 
         // socket.on('create room', data => {
