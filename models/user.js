@@ -6,7 +6,7 @@ module.exports = (sequelize, Sequelize) => {
             type        : Sequelize.INTEGER,
             defaultValue: 0
         },
-        dickens :   {
+        even :   {
             type        : Sequelize.INTEGER,
             defaultValue: 0
         },
@@ -16,8 +16,16 @@ module.exports = (sequelize, Sequelize) => {
         },
         elo     :   {
             type        : Sequelize.FLOAT,
-            defaultValue: 0.0
+            defaultValue: 500.0
         },
+        imageUrl:   {
+            type        : Sequelize.STRING,
+            defaultValue: 'user0'
+        },
+        isLocalImage: {
+            type        : Sequelize.BOOLEAN,
+            defaultValue: true
+        }
     })
     return User
 }

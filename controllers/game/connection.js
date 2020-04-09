@@ -15,8 +15,9 @@ module.exports = (io) => {
             type: sequelize.QueryTypes.SELECT
         })
 
+        socket.emit('server ready')
+
         players[socket.id] = {
-            id                  : socket.id,
             username            : user[0].username,
             elo                 : user[0].elo,
             waitingListening    : false,
@@ -28,8 +29,18 @@ module.exports = (io) => {
             io.emit('information player', players[socket.id])
         })
 
-        socket.on('call waiting room', () => {
-            io.emit('list waiting room', rooms)
+        socket.on('listen waiting room', listen => {
+            players[socket.id].waitingListening = listen
+            if (listen) {
+                io.emit('list waiting room', rooms)
+            }
+        })
+
+        socket.on('listen watching room', listen => {
+            players[socket.id].waitingListening = listen
+            if (listen) {
+                io.emit('list watching room', rooms)
+            }
         })
 
         socket.on('disconnect', () => {
