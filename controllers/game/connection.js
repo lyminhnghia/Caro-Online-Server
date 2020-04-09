@@ -47,7 +47,7 @@ module.exports = (io) => {
             let rooms = []
             for (i in freeRooms) {
                 let host = busyPlayers[map[freeRooms[i].hostname]]
-                let havePassword = freeRooms[i].password !== ""
+                let havePassword = freeRooms[i].password !== ''
                 rooms.push({
                     username: host.username,
                     isLocalImage: host.isLocalImage,
@@ -72,7 +72,7 @@ module.exports = (io) => {
         
             socket.join(socket.id)
 
-            havePassword = data.password === ''
+            havePassword = data.password !== ''
 
             io.emit('create room', {
                 username            : freePlayers[socket.id].username,
