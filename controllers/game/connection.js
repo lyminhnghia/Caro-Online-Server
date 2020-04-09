@@ -11,7 +11,7 @@ module.exports = (io) => {
         secret: 'uet-team-secret',
         timeout: 10000
     })).on('authenticated', async socket => {
-        const user = await sequelize.query(`Select username, elo from users WHERE id = ${socket.decoded_token.id}`,{
+        const user = await sequelize.query(`Select username, elo, isLocalImage, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         })
 
@@ -20,8 +20,9 @@ module.exports = (io) => {
         players[socket.id] = {
             username            : user[0].username,
             elo                 : user[0].elo,
-            waitingListening    : false,
-            watchingListening   : false
+            isLocalImage        : user[0].isLocalImage,
+            imageUrl            : user[0].imageUrl,
+            roomListen          : false
         }
         
         socket.on('call information', data => {
@@ -29,17 +30,10 @@ module.exports = (io) => {
             io.emit('information player', players[socket.id])
         })
 
-        socket.on('listen waiting room', listen => {
-            players[socket.id].waitingListening = listen
+        socket.on('listen room', listen => {
+            players[socket.id].roomListen = listen
             if (listen) {
-                io.emit('list waiting room', rooms)
-            }
-        })
-
-        socket.on('listen watching room', listen => {
-            players[socket.id].waitingListening = listen
-            if (listen) {
-                io.emit('list watching room', rooms)
+                io.emit('listen room', rooms)
             }
         })
 
