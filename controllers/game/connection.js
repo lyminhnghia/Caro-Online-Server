@@ -22,12 +22,35 @@ module.exports = (io) => {
             elo                 : user[0].elo,
             isLocalImage        : user[0].isLocalImage,
             imageUrl            : user[0].imageUrl,
-            roomListen          : false
+            roomListen          : false,
+            playerListen        : true
         }
         
         socket.on('call information', data => {
             console.log(data)
             io.emit('information player', players[socket.id])
+        })
+
+        socket.on('create room', data => {
+            rooms[players[socket.id].username] = {
+                userId          : socket.id,
+                password        : data.password,
+                timelapse       : data.timelapse,
+                rank            : data.rank
+            }
+            socket.join(data.username)
+
+            havePassword = data.password === ''
+
+            io.emit('create room', {
+                username            : players[socket.id].username,
+                elo                 : players[socket.id].elo,
+                isLocalImage        : players[socket.id].isLocalImage,
+                imageUrl            : players[socket.id].imageUrl,
+                rank                : data.rank,
+                timelapse           : data.timelapse,
+                havePassword        : havePassword
+            })
         })
 
         socket.on('listen room', listen => {
