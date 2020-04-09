@@ -65,7 +65,7 @@ module.exports = (io) => {
                 if (room.joinname) {
                     continue
                 }
-                let host = room.hostname
+                let host = players[map[room.hostname]]
                 let havePassword = room.password !== ''
                 result.push({
                     username: host.username,
