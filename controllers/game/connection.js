@@ -107,6 +107,9 @@ module.exports = (io) => {
                 return
             }
             delete map[user[0].username]
+            if (freeRooms[socket.id]) {
+                delete freeRooms[socket.id]
+            }
             if (freePlayers[socket.id]) {
                 delete freePlayers[socket.id]
             } else {
