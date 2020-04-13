@@ -85,6 +85,7 @@ module.exports = (io) => {
                 password        : data.password,
                 timelapse       : data.timelapse,
                 rank            : data.rank,
+                ready           : false,
                 started         : false
             }
         
@@ -127,6 +128,10 @@ module.exports = (io) => {
                 imageUrl : user.imageUrl,
                 elo : user.elo
             })
+            io.emit('player', {
+                busy: true,
+                username: user.username
+            })
         })
 
         socket.on('leave', () => {
@@ -151,16 +156,45 @@ module.exports = (io) => {
                     delete rooms[user.username]
                 }
             }
+            io.emit('player', {
+                busy: false,
+                username: player.username,
+                isLocalImage: player.isLocalImage,
+                imageUrl: player.imageUrl,
+                elo: player.elo
+            })
         })
 
-        socket.on('update', data => {
+        socket.on('ready', data => {
+            let player = players[socket.id]
+            if (player.currentRoom) {
+                rooms[player.currentRoom].ready = data.ready
+                io.to(player.currentRoom).emit('ready', {success: true, message: data.ready})
+            }
+        })
+
+        socket.on('start', () => {
+            let player = players[socket.id]
+            if (!player.currentRoom) {
+                socket.emit('start', {success: false, message: 'Bạn chưa tham gia phòng!'})
+                return
+            }
+            if (rooms[player.currentRoom].ready) {
+                rooms[player.currentRoom].started = true
+                io.to(player.currentRoom).emit('start', {success: true})
+            } else {
+                io.to(player.currentRoom).emit('start', {success: false, message: 'Người chơi chưa sẵn sàng!'})
+            }
+        })
+
+        socket.on('room', data => {
             havePassword = data.password !== ''
 
             rooms[user.username].password = data.password
             rooms[user.username].timelapse = data.timelapse
             rooms[user.username].rank = data.rank
 
-            io.emit('update', {
+            io.emit('room', {
                 username        : user.username,
                 havePassword    : havePassword,
                 timelapse       : data.timelapse,
@@ -197,6 +231,10 @@ module.exports = (io) => {
                     }
                 }
             }
+            io.emit('player', {
+                busy: true,
+                username: player.username
+            })
             delete map[user.username]
             delete players[socket.id]
         })
