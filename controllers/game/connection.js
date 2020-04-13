@@ -131,15 +131,16 @@ module.exports = (io) => {
 
         socket.on('leave', () => {
             let player = players[socket.id]
-            if (!rooms[player.currentRoom].started) {
+            let room = rooms[players.currentRoom]
+            if (!room.started) {
                 if (player.username !== player.currentRoom) {
-                    rooms[players[socket.id].currentRoom].joinname = null
+                    room.joinname = null
                     io.emit('create', {
                         hostname        : user.username,
                         joinname        : null,
                         havePassword    : havePassword,
-                        timelapse       : data.timelapse,
-                        rank            : data.rank
+                        timelapse       : room.timelapse,
+                        rank            : room.rank
                     })
                     io.to(players[socket.id].currentRoom).emit('leave')
                     players[socket.id].currentRoom = null
@@ -175,15 +176,16 @@ module.exports = (io) => {
             }
             let player = players[socket.id]
             if (player.currentRoom) {
-                if (!rooms[player.currentRoom].started) {
+                let room = rooms[players.currentRoom]
+                if (!room.started) {
                     if (player.username !== player.currentRoom) {
-                        rooms[players[socket.id].currentRoom].joinname = null
+                        room.joinname = null
                         io.emit('create', {
                             hostname        : user.username,
                             joinname        : null,
                             havePassword    : havePassword,
-                            timelapse       : data.timelapse,
-                            rank            : data.rank
+                            timelapse       : room.timelapse,
+                            rank            : room.rank
                         })
                         io.to(players[socket.id].currentRoom).emit('leave')
                         players[socket.id].currentRoom = null
