@@ -22,8 +22,6 @@ module.exports = (io) => {
             map[user.username] = socket.id
         }
 
-        socket.emit('server ready')
-
         players[socket.id] = {
             username            : user.username,
             elo                 : user.elo,
@@ -41,7 +39,7 @@ module.exports = (io) => {
             })
         })
 
-        socket.on('list player', () => {
+        socket.on('players', () => {
             let result = []
             for (i in players) {
                 let player = players[i]
@@ -55,10 +53,10 @@ module.exports = (io) => {
                     elo : player.elo
                 })
             }
-            socket.emit('list player', result)
+            socket.emit('players', result)
         })
 
-        socket.on('list room', () => {
+        socket.on('rooms', () => {
             let result = []
             for (i in rooms) {
                 let room = rooms[i]
@@ -77,60 +75,97 @@ module.exports = (io) => {
                     havePassword : havePassword
                 })
             }
-            socket.emit('list room', result)
+            socket.emit('rooms', result)
         })
 
-        socket.on('create room', data => {
+        socket.on('create', data => {
             rooms[user.username] = {
                 hostname        : user.username,
                 joinname        : null,
                 password        : data.password,
                 timelapse       : data.timelapse,
-                rank            : data.rank
+                rank            : data.rank,
+                started         : false
             }
         
             socket.join(user.username)
 
             havePassword = data.password !== ''
 
-            io.emit('create room', {
-                username            : user.username,
-                elo                 : user.elo,
-                isLocalImage        : user.isLocalImage,
-                imageUrl            : user.imageUrl,
-                rank                : data.rank,
-                timelapse           : data.timelapse,
-                havePassword        : havePassword
+            io.emit('create', {
+                hostname        : user.username,
+                joinname        : null,
+                havePassword    : havePassword,
+                timelapse       : data.timelapse,
+                rank            : data.rank
             })
 
             players[socket.id].currentRoom = user.username
         })
 
-        socket.on('join room', data => {
-            if (rooms[data.username].password === data.password) {
-                rooms[data.username].joinname = user.username
-                players[socket.id].currentRoom = data.username
-                socket.join(data.username)
-                socket.to(data.username).emit('join room', {
-                    username : user.username,
-                    isLocalImage : user.isLocalImage,
-                    imageUrl : user.imageUrl,
-                    elo : user.elo
-                })
+        socket.on('join', data => {
+            if (!rooms[data.username]) {
+                socket.emit('join', {success: false, message: 'Phòng không tồn tại!'})
+                return
+            }
+            if (rooms[data.username].password !== data.password) {
+                socket.emit('join', {success: false, message: 'Sai mật khẩu!'})
+                return
+            }
+            if (rooms[data.username].joinname !== null) {
+                socket.emit('join', {success: false, message: 'Phòng đã đầy!'})
+                return
+            }
+            rooms[data.username].joinname = user.username
+            players[socket.id].currentRoom = data.username
+            socket.join(data.username)
+            io.emit('delete', {username: data.username})
+            io.to(data.username).emit('join', {
+                success: true,
+                username : user.username,
+                isLocalImage : user.isLocalImage,
+                imageUrl : user.imageUrl,
+                elo : user.elo
+            })
+        })
+
+        socket.on('leave', () => {
+            let player = players[socket.id]
+            if (!rooms[player.currentRoom].started) {
+                if (player.username !== player.currentRoom) {
+                    rooms[players[socket.id].currentRoom].joinname = null
+                    io.emit('create', {
+                        hostname        : user.username,
+                        joinname        : null,
+                        havePassword    : havePassword,
+                        timelapse       : data.timelapse,
+                        rank            : data.rank
+                    })
+                    io.to(players[socket.id].currentRoom).emit('leave')
+                    players[socket.id].currentRoom = null
+                } else {
+                    io.to(player.username).emit('leave')
+                    players[map[rooms[user.username].joinname]].currentRoom = null
+                    players[socket.id].currentRoom = null
+                    delete rooms[user.username]
+                }
             }
         })
 
-        // socket.on('delete room', () =>{
-        //     delete rooms[players[socket.id].username]
-        //     io.emit('delete room', players[soc])
-        // })
+        socket.on('update', data => {
+            havePassword = data.password !== ''
 
-        // socket.on('listen room', listen => {
-        //     players[socket.id].roomListen = listen
-        //     if (listen) {
-        //         io.emit('listen room', rooms)
-        //     }
-        // })
+            rooms[user.username].password = data.password
+            rooms[user.username].timelapse = data.timelapse
+            rooms[user.username].rank = data.rank
+
+            io.emit('update', {
+                username        : user.username,
+                havePassword    : havePassword,
+                timelapse       : data.timelapse,
+                rank            : data.rank
+            })
+        })
 
         socket.on('disconnect', () => {
 
@@ -140,10 +175,24 @@ module.exports = (io) => {
             }
             let player = players[socket.id]
             if (player.currentRoom) {
-                socket.to(player.currentRoom).emit("quit")
-                if (player.currentRoom == player.username) {
-                    players[map[rooms[player.currentRoom].joinname]].currentRoom = null  
-                    delete rooms[player.currentRoom]
+                if (!rooms[player.currentRoom].started) {
+                    if (player.username !== player.currentRoom) {
+                        rooms[players[socket.id].currentRoom].joinname = null
+                        io.emit('create', {
+                            hostname        : user.username,
+                            joinname        : null,
+                            havePassword    : havePassword,
+                            timelapse       : data.timelapse,
+                            rank            : data.rank
+                        })
+                        io.to(players[socket.id].currentRoom).emit('leave')
+                        players[socket.id].currentRoom = null
+                    } else {
+                        io.to(player.username).emit('leave')
+                        players[map[rooms[user.username].joinname]].currentRoom = null
+                        players[socket.id].currentRoom = null
+                        delete rooms[user.username]
+                    }
                 }
             }
             delete map[user.username]
