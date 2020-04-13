@@ -131,7 +131,7 @@ module.exports = (io) => {
 
         socket.on('leave', () => {
             let player = players[socket.id]
-            let room = rooms[players.currentRoom]
+            let room = rooms[player.currentRoom]
             if (!room.started) {
                 if (player.username !== player.currentRoom) {
                     room.joinname = null
@@ -176,7 +176,7 @@ module.exports = (io) => {
             }
             let player = players[socket.id]
             if (player.currentRoom) {
-                let room = rooms[players.currentRoom]
+                let room = rooms[player.currentRoom]
                 if (!room.started) {
                     if (player.username !== player.currentRoom) {
                         room.joinname = null
