@@ -95,8 +95,10 @@ module.exports = (io) => {
 
             io.emit('create', {
                 hostname        : user.username,
-                joinname        : null,
+                isLocalImage    : user.isLocalImage,
+                imageUrl        : imageUrl,
                 havePassword    : havePassword,
+                elo             : user.elo,
                 timelapse       : data.timelapse,
                 rank            : data.rank
             })
