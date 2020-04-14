@@ -200,6 +200,53 @@ module.exports = (io) => {
             })
         })
 
+        socket.on('challenge', data => {
+            io.to(map[data.username]).emit('challenge', {
+                username: user.username,
+                imageUrl: user.imageUrl,
+                elo: user.elo
+            })
+        })
+
+        socket.on('accept', data => {{
+            if (!map[data.username]) {
+                socket.emit('accept', { success: false, message: 'Người chơi đã offline'})
+                return
+            }
+            if (players[map[data.username]].currentRoom !== null) {
+                socket.emit('accept', { success: false, message: 'Người chơi đang bận' })
+                return
+            }
+
+            rooms[data.username] = {
+                hostname        : data.username,
+                joinname        : user.username,
+                password        : '',
+                timelapse       : 20,
+                rank            : true,
+                ready           : false,
+                started         : false
+            }
+        
+            socket.join(data.username)
+            io.sockets.connected[map[data.username]].join(data.username)
+            socket.to(data.username).emit('accept', { 
+                success: true,
+                username: user.username,
+                imageUrl: user.imageUrl,
+                elo: user.elo
+            })
+
+            io.emit('player', {
+                busy: true,
+                username: data.username
+            })
+            io.emit('player', {
+                busy: true,
+                username: user.username
+            })
+        }})
+
         socket.on('ready', data => {
             let player = players[socket.id]
             if (player.currentRoom) {
