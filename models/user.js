@@ -21,10 +21,6 @@ module.exports = (sequelize, Sequelize) => {
         imageUrl:   {
             type        : Sequelize.STRING,
             defaultValue: 'user0'
-        },
-        isLocalImage: {
-            type        : Sequelize.BOOLEAN,
-            defaultValue: true
         }
     })
     return User

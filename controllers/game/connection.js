@@ -12,7 +12,7 @@ module.exports = (io) => {
         secret: 'uet-team-secret',
         timeout: 10000
     })).on('authenticated', async socket => {
-        const user = (await sequelize.query(`Select username, elo, isLocalImage, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
+        const user = (await sequelize.query(`Select username, elo, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
@@ -25,7 +25,6 @@ module.exports = (io) => {
         players[socket.id] = {
             username            : user.username,
             elo                 : user.elo,
-            isLocalImage        : user.isLocalImage,
             imageUrl            : user.imageUrl,
             currentRoom         : null
         }
@@ -34,7 +33,6 @@ module.exports = (io) => {
             socket.emit('information', {
                 username : user.username,
                 elo: user.elo,
-                isLocalImage : user.isLocalImage,
                 imageUrl : user.imageUrl
             })
         })
@@ -48,7 +46,6 @@ module.exports = (io) => {
                 }
                 result.push({
                     username : player.username,
-                    isLocalImage : player.isLocalImage,
                     imageUrl : player.imageUrl,
                     elo : player.elo
                 })
@@ -67,7 +64,6 @@ module.exports = (io) => {
                 let havePassword = room.password !== ''
                 result.push({
                     username: host.username,
-                    isLocalImage: host.isLocalImage,
                     imageUrl: host.imageUrl,
                     timelapse: room.timelapse,
                     rank: room.rank,
@@ -95,7 +91,6 @@ module.exports = (io) => {
 
             io.emit('create', {
                 username        : user.username,
-                isLocalImage    : user.isLocalImage,
                 imageUrl        : user.imageUrl,
                 havePassword    : havePassword,
                 elo             : user.elo,
@@ -121,14 +116,20 @@ module.exports = (io) => {
             }
             rooms[data.username].joinname = user.username
             players[socket.id].currentRoom = data.username
-            socket.join(data.username)
+            
             io.emit('delete', {username: data.username})
             io.to(data.username).emit('join', {
                 success: true,
                 username : user.username,
-                isLocalImage : user.isLocalImage,
                 imageUrl : user.imageUrl,
                 elo : user.elo
+            })
+            socket.join(data.username)
+            socket.emit('join', {
+                success: true,
+                username : data.username,
+                imageUrl : players[map[data.username]].imageUrl,
+                elo : players[map[data.username]].elo
             })
             io.emit('player', {
                 busy: true,
@@ -166,7 +167,6 @@ module.exports = (io) => {
             io.emit('player', {
                 busy: false,
                 username: player.username,
-                isLocalImage: player.isLocalImage,
                 imageUrl: player.imageUrl,
                 elo: player.elo
             })
