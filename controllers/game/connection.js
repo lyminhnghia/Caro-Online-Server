@@ -44,6 +44,9 @@ module.exports = (io) => {
                 if (player.currentRoom) {
                     continue
                 }
+                if (player.username === user.username) {
+                    continue
+                }
                 result.push({
                     username : player.username,
                     imageUrl : player.imageUrl,
@@ -169,6 +172,31 @@ module.exports = (io) => {
                 username: player.username,
                 imageUrl: player.imageUrl,
                 elo: player.elo
+            })
+        })
+
+        socket.on('kick', () => {
+            let player = players[socket.id]
+            let room = rooms[player.username]
+            if (!room) {
+                return
+            }
+            if (player.username !== player.currentRoom) {
+                return
+            }
+            if (room.joinname === null) {
+                return
+            }
+            io.to(player.username).emit('kick')
+            let join = players[map[room.joinname]]
+            
+            join.currentRoom = null
+            room.joinname = null
+            io.emit('player', {
+                busy: false,
+                username: join.username,
+                imageUrl: join.imageUrl,
+                elo: join.elo
             })
         })
 
