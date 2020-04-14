@@ -16,6 +16,13 @@ module.exports = (io) => {
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
+        io.emit('player', {
+            busy: false,
+            username: user.username,
+            imageUrl: user.imageUrl,
+            elo: user.elo
+        })
+
         if (map[user.username]) {
             io.sockets.connected[socket.id].disconnect()
         } else {
@@ -251,7 +258,7 @@ module.exports = (io) => {
             let player = players[socket.id]
             if (player.currentRoom) {
                 rooms[player.currentRoom].ready = data.ready
-                io.to(player.currentRoom).emit('ready', {success: true, message: data.ready})
+                io.to(player.currentRoom).emit('ready', {ready: data.ready})
             }
         })
 
@@ -261,7 +268,11 @@ module.exports = (io) => {
                 socket.emit('start', {success: false, message: 'Bạn chưa tham gia phòng!'})
                 return
             }
-            if (rooms[player.currentRoom].ready) {
+            if (player.currentRoom !== user.username) {
+                socket.emit('start', {success: false, message: 'Bạn không phải là chủ phòng!'})
+                return
+            }
+            if (rooms[player.currentRoom].ready === true) {
                 rooms[player.currentRoom].started = true
                 io.to(player.currentRoom).emit('start', {success: true})
             } else {
