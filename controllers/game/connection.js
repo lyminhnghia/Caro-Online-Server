@@ -99,7 +99,7 @@ module.exports = (io) => {
 
             havePassword = data.password !== ''
 
-            io.emit('create', {
+            socket.broadcast.emit('create', {
                 username        : user.username,
                 imageUrl        : user.imageUrl,
                 havePassword    : havePassword,
@@ -150,12 +150,12 @@ module.exports = (io) => {
         socket.on('leave', () => {
             let player = players[socket.id]
             let room = rooms[player.currentRoom]
-            if (!room.started) {
+            if (room.started == false) {
                 if (player.username !== player.currentRoom) {
                     room.joinname = null
                     room.ready = false
                     let host = players[map[room.hostname]]
-                    io.emit('create', {
+                    io.sockets.connected[map[host.username]].broadcast.emit('create', {
                         username        : host.username,
                         imageUrl        : host.imageUrl,
                         havePassword    : havePassword,
@@ -207,7 +207,7 @@ module.exports = (io) => {
             }
             io.to(player.username).emit('kick')
             havePassword = room.password !== ''
-            io.emit('create', {
+            socket.broadcast.emit('create', {
                 username        : player.username,
                 imageUrl        : player.imageUrl,
                 havePassword    : havePassword,
@@ -263,6 +263,15 @@ module.exports = (io) => {
                 username: user.username,
                 imageUrl: user.imageUrl,
                 elo: user.elo
+            })
+
+            let host = players[map[data.username]]
+
+            socket.emit('accept', { 
+                success: true,
+                username: host.username,
+                imageUrl: host.imageUrl,
+                elo: host.elo
             })
 
             io.sockets.connected[map[data.username]].broadcast.emit('player', {
