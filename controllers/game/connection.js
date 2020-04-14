@@ -94,9 +94,9 @@ module.exports = (io) => {
             havePassword = data.password !== ''
 
             io.emit('create', {
-                hostname        : user.username,
+                username        : user.username,
                 isLocalImage    : user.isLocalImage,
-                imageUrl        : imageUrl,
+                imageUrl        : user.imageUrl,
                 havePassword    : havePassword,
                 elo             : user.elo,
                 timelapse       : data.timelapse,
