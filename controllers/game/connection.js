@@ -153,10 +153,13 @@ module.exports = (io) => {
             if (!room.started) {
                 if (player.username !== player.currentRoom) {
                     room.joinname = null
+                    room.ready = false
+                    let host = players[map[room.hostname]]
                     io.emit('create', {
-                        hostname        : user.username,
-                        joinname        : null,
+                        username        : host.username,
+                        imageUrl        : host.imageUrl,
                         havePassword    : havePassword,
+                        elo             : host.elo,
                         timelapse       : room.timelapse,
                         rank            : room.rank
                     })
@@ -203,16 +206,26 @@ module.exports = (io) => {
                 return
             }
             io.to(player.username).emit('kick')
+            havePassword = room.password !== ''
+            io.emit('create', {
+                username        : player.username,
+                imageUrl        : player.imageUrl,
+                havePassword    : havePassword,
+                elo             : player.elo,
+                timelapse       : room.timelapse,
+                rank            : room.rank
+            })
+            room.ready = false
             let join = players[map[room.joinname]]
-            
-            join.currentRoom = null
-            room.joinname = null
-            socket.broadcast.emit('player', {
+        
+            io.sockets.connected[map[room.joinname]].broadcast.emit('player', {
                 busy: false,
                 username: join.username,
                 imageUrl: join.imageUrl,
                 elo: join.elo
             })
+            join.currentRoom = null
+            room.joinname = null
         })
 
         socket.on('challenge', data => {
@@ -280,7 +293,7 @@ module.exports = (io) => {
                 socket.emit('start', {success: false, message: 'Bạn không phải là chủ phòng!'})
                 return
             }
-            if (rooms[player.currentRoom].ready === true) {
+            if (rooms[player.currentRoom].ready == true) {
                 rooms[player.currentRoom].started = true
                 io.to(player.currentRoom).emit('start', {success: true})
             } else {
@@ -315,10 +328,12 @@ module.exports = (io) => {
                 if (!room.started) {
                     if (player.username !== player.currentRoom) {
                         room.joinname = null
+                        let host = players[map[room.hostname]]
                         io.emit('create', {
-                            hostname        : user.username,
-                            joinname        : null,
+                            username        : host.username,
+                            imageUrl        : host.imageUrl,
                             havePassword    : havePassword,
+                            elo             : host.elo,
                             timelapse       : room.timelapse,
                             rank            : room.rank
                         })
