@@ -153,9 +153,14 @@ module.exports = (io) => {
                     players[socket.id].currentRoom = null
                 } else {
                     io.to(player.username).emit('leave')
-                    players[map[rooms[user.username].joinname]].currentRoom = null
-                    players[socket.id].currentRoom = null
-                    delete rooms[user.username]
+                    if (rooms[user.username].joinname) {
+                        players[map[rooms[user.username].joinname]].currentRoom = null
+                        players[socket.id].currentRoom = null
+                        delete rooms[user.username]
+                    } else {
+                        players[socket.id].currentRoom = null
+                        delete rooms[user.username]
+                    }
                 }
             }
             io.emit('player', {
