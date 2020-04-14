@@ -16,7 +16,7 @@ module.exports = (io) => {
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
-        io.emit('player', {
+        socket.broadcast.emit('player', {
             busy: false,
             username: user.username,
             imageUrl: user.imageUrl,
@@ -60,7 +60,7 @@ module.exports = (io) => {
                     elo : player.elo
                 })
             }
-            socket.emit('players', result)
+            socket.broadcast.emit('players', result)
         })
 
         socket.on('rooms', () => {
@@ -141,7 +141,7 @@ module.exports = (io) => {
                 imageUrl : players[map[data.username]].imageUrl,
                 elo : players[map[data.username]].elo
             })
-            io.emit('player', {
+            socket.broadcast.emit('player', {
                 busy: true,
                 username: user.username
             })
@@ -163,10 +163,18 @@ module.exports = (io) => {
                     io.to(players[socket.id].currentRoom).emit('leave')
                     players[socket.id].currentRoom = null
                 } else {
+                    let room = rooms[user.username]
                     io.to(player.username).emit('leave')
-                    if (rooms[user.username].joinname) {
-                        players[map[rooms[user.username].joinname]].currentRoom = null
+                    if (room.joinname) {
+                        let join = players[map[room.joinname]]
+                        players[map[room.joinname]].currentRoom = null
                         players[socket.id].currentRoom = null
+                        io.sockets.connected[map[room.joinname]].broadcast.emit('player', {
+                            busy: false,
+                            username: join.username,
+                            imageUrl: join.imageUrl,
+                            elo: join.elo
+                        })
                         delete rooms[user.username]
                     } else {
                         players[socket.id].currentRoom = null
@@ -174,7 +182,7 @@ module.exports = (io) => {
                     }
                 }
             }
-            io.emit('player', {
+            socket.broadcast.emit('player', {
                 busy: false,
                 username: player.username,
                 imageUrl: player.imageUrl,
@@ -199,7 +207,7 @@ module.exports = (io) => {
             
             join.currentRoom = null
             room.joinname = null
-            io.emit('player', {
+            socket.broadcast.emit('player', {
                 busy: false,
                 username: join.username,
                 imageUrl: join.imageUrl,
@@ -244,11 +252,11 @@ module.exports = (io) => {
                 elo: user.elo
             })
 
-            io.emit('player', {
+            io.sockets.connected[map[data.username]].broadcast.emit('player', {
                 busy: true,
                 username: data.username
             })
-            io.emit('player', {
+            socket.broadcast.emit('player', {
                 busy: true,
                 username: user.username
             })
@@ -324,7 +332,7 @@ module.exports = (io) => {
                     }
                 }
             }
-            io.emit('player', {
+            socket.broadcast.emit('player', {
                 busy: true,
                 username: player.username
             })
