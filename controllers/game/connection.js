@@ -60,7 +60,7 @@ module.exports = (io) => {
                     elo : player.elo
                 })
             }
-            socket.broadcast.emit('players', result)
+            socket.emit('players', result)
         })
 
         socket.on('rooms', () => {
@@ -167,7 +167,7 @@ module.exports = (io) => {
                     io.to(player.username).emit('leave')
                     if (room.joinname) {
                         let join = players[map[room.joinname]]
-                        players[map[room.joinname]].currentRoom = null
+                        join.currentRoom = null
                         players[socket.id].currentRoom = null
                         io.sockets.connected[map[room.joinname]].broadcast.emit('player', {
                             busy: false,
