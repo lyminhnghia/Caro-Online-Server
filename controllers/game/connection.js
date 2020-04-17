@@ -350,7 +350,9 @@ module.exports = (io) => {
                         players[socket.id].currentRoom = null
                     } else {
                         io.to(player.username).emit('leave')
-                        players[map[rooms[user.username].joinname]].currentRoom = null
+                        if (players[map[rooms[user.username].joinname]].currentRoom) {
+                            players[map[rooms[user.username].joinname]].currentRoom = null
+                        }
                         players[socket.id].currentRoom = null
                         delete rooms[user.username]
                     }
