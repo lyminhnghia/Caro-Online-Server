@@ -2,7 +2,8 @@ const db = require('../../configs/db.config')
 const sequelize = db.sequelize
 const socketJwt = require('socketio-jwt')
 
-// const waiting = require('./room/waiting-room')
+const Information   = require('./information')
+const Players       = require('./players')
 
 module.exports = (io) => {
     const players = {}
@@ -35,33 +36,10 @@ module.exports = (io) => {
             imageUrl            : user.imageUrl,
             currentRoom         : null
         }
-        
-        socket.on('information', () => {
-            socket.emit('information', {
-                username : user.username,
-                elo: user.elo,
-                imageUrl : user.imageUrl
-            })
-        })
 
-        socket.on('players', () => {
-            let result = []
-            for (i in players) {
-                let player = players[i]
-                if (player.currentRoom) {
-                    continue
-                }
-                if (player.username === user.username) {
-                    continue
-                }
-                result.push({
-                    username : player.username,
-                    imageUrl : player.imageUrl,
-                    elo : player.elo
-                })
-            }
-            socket.emit('players', result)
-        })
+        Information(socket, user)
+
+        Players (socket, players, user)
 
         socket.on('rooms', () => {
             let result = []
