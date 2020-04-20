@@ -4,6 +4,7 @@ const socketJwt = require('socketio-jwt')
 
 const Information   = require('./information')
 const Players       = require('./players')
+const Rooms         = require('./rooms')
 
 module.exports = (io) => {
     const players = {}
@@ -41,26 +42,7 @@ module.exports = (io) => {
 
         Players (socket, players, user)
 
-        socket.on('rooms', () => {
-            let result = []
-            for (i in rooms) {
-                let room = rooms[i]
-                if (room.joinname) {
-                    continue
-                }
-                let host = players[map[room.hostname]]
-                let havePassword = room.password !== ''
-                result.push({
-                    username: host.username,
-                    imageUrl: host.imageUrl,
-                    timelapse: room.timelapse,
-                    rank: room.rank,
-                    elo: host.elo,
-                    havePassword : havePassword
-                })
-            }
-            socket.emit('rooms', result)
-        })
+        Rooms(socket, players, rooms)
 
         socket.on('create', data => {
             rooms[user.username] = {
