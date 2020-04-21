@@ -1,5 +1,5 @@
 const Disconnect = (io, socket, rooms, players, user, map) => {
-    socket.on('disconnect', async () => {
+    socket.on('disconnect', () => {
 
         console.log(`Disconnected: ${socket.id}`)
         if (map[user.username] !== socket.id) {
@@ -12,7 +12,7 @@ const Disconnect = (io, socket, rooms, players, user, map) => {
                 if (player.username !== player.currentRoom) {
                     room.joinname = null
                     let host = players[map[room.hostname]]
-                    await io.emit('create', {
+                    io.emit('create', {
                         username        : host.username,
                         imageUrl        : host.imageUrl,
                         havePassword    : havePassword,
@@ -20,11 +20,11 @@ const Disconnect = (io, socket, rooms, players, user, map) => {
                         timelapse       : room.timelapse,
                         rank            : room.rank
                     })
-                    await io.to(players[socket.id].currentRoom).emit('leave')
+                    io.to(players[socket.id].currentRoom).emit('leave')
                     players[socket.id].currentRoom = null
                 } else {
-                    await io.to(player.username).emit('leave')
-                    if (players[map[rooms[user.username].joinname]].currentRoom) {
+                    io.to(player.username).emit('leave')
+                    if (players[map[rooms[user.username].joinname]].currentRoom !== null) {
                         players[map[rooms[user.username].joinname]].currentRoom = null
                     }
                     players[socket.id].currentRoom = null
