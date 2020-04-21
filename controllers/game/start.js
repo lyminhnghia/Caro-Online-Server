@@ -9,7 +9,7 @@ const Start = (io, socket, rooms, players, user) => {
             await socket.emit('start', {success: false, message: 'Bạn không phải là chủ phòng!'})
             return
         }
-        if (rooms[player.currentRoom].ready == true) {
+        if (rooms[player.currentRoom].ready === true) {
             rooms[player.currentRoom].started = true
             await io.to(player.currentRoom).emit('start', {success: true})
         } else {
