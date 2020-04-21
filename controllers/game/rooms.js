@@ -1,4 +1,4 @@
-const Rooms = (socket, players, rooms) => {
+const Rooms = (socket, players, rooms, map) => {
     const data = () => {
         let result = []
         for (i in rooms) {
