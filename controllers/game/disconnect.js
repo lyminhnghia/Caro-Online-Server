@@ -32,7 +32,7 @@ const Disconnect = (io, socket, rooms, players, user, map) => {
                 }
             }
         }
-        await socket.broadcast.emit('player', {
+        socket.broadcast.emit('player', {
             busy: true,
             username: player.username
         })
