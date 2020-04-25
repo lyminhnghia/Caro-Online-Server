@@ -21,13 +21,11 @@ const Disconnect = (io, socket, rooms, players, user, map) => {
                         rank            : room.rank
                     })
                     io.to(players[socket.id].currentRoom).emit('leave')
-                    players[socket.id].currentRoom = null
                 } else {
                     io.to(player.username).emit('leave')
-                    if (players[map[rooms[user.username].joinname]].currentRoom !== null) {
+                    if (rooms[user.username].joinname !== null) {
                         players[map[rooms[user.username].joinname]].currentRoom = null
                     }
-                    players[socket.id].currentRoom = null
                     delete rooms[user.username]
                 }
             }

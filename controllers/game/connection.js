@@ -68,7 +68,7 @@ module.exports = (io) => {
 
         Ready(io, socket, rooms, players) 
 
-        Start(io, socket, rooms, players, user)
+        Start(io, socket, rooms, players, user, map)
         
         Room(io, socket, rooms, user)
         

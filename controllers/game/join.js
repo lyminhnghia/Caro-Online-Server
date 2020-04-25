@@ -24,10 +24,7 @@ const Join = (io, socket, rooms, players, user, map) => {
         })
         await socket.join(data.username)
         await socket.emit('join', {
-            success: true,
-            username : data.username,
-            imageUrl : players[map[data.username]].imageUrl,
-            elo : players[map[data.username]].elo
+            success: true
         })
         await socket.broadcast.emit('player', {
             busy: true,

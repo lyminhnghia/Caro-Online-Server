@@ -1,4 +1,5 @@
-const Start = (io, socket, rooms, players, user) => {
+const GameController = require('./gamecontroller')
+const Start = (io, socket, rooms, players, user, map) => {
     socket.on('start', async () => {
         let player = players[socket.id]
         if (!player.currentRoom) {
@@ -12,6 +13,7 @@ const Start = (io, socket, rooms, players, user) => {
         if (rooms[player.currentRoom].ready === true) {
             rooms[player.currentRoom].started = true
             await io.to(player.currentRoom).emit('start', {success: true})
+            GameController(io, rooms[player.currentRoom], players, map)
         } else {
             await io.to(player.currentRoom).emit('start', {success: false, message: 'Người chơi chưa sẵn sàng!'})
         }
