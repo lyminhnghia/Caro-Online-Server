@@ -2,7 +2,7 @@ const Leave = (io, socket, rooms, players, user, map) => {
     socket.on('leave', async () => {
         let player = players[socket.id]
         let room = rooms[player.currentRoom]
-        if (room.started == false) {
+        if (room.started === false) {
             if (player.username !== player.currentRoom) {
                 room.joinname = null
                 room.ready = false
@@ -30,12 +30,14 @@ const Leave = (io, socket, rooms, players, user, map) => {
                         imageUrl: join.imageUrl,
                         elo: join.elo
                     })
-                    delete rooms[user.username]
                 } else {
                     players[socket.id].currentRoom = null
-                    delete rooms[user.username]
                 }
+                rooms[user.username].hostname = null
+                delete rooms[user.username]
             }
+        } else {
+            room.started = false
         }
         await socket.broadcast.emit('player', {
             busy: false,
