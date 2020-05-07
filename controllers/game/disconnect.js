@@ -28,9 +28,6 @@ const Disconnect = (io, socket, rooms, players, user, map) => {
                     }
                     delete rooms[user.username]
                 }
-            } else {
-                room.started = false
-                
             }
         }
         socket.broadcast.emit('player', {
