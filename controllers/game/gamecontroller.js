@@ -20,14 +20,14 @@ const GameController = (io, room, players, map) => {
     
     function createInterval() {
         return setInterval(async () => {
-            if (room.started === false) {
-                clearInterval(interval)
-                if (map[room.hostname] === null && map[room.joinanme] === null) {
-                    return
-                }
-                io.to(room.hostname).emit('end', { username : map[room.hostname] === null ? room.joinanme : room.hostname })
-                return
-            }
+            // if (room.started === false) {
+            //     clearInterval(interval)
+            //     if (map[room.hostname] === null && map[room.joinanme] === null) {
+            //         return
+            //     }
+            //     io.to(room.hostname).emit('end', { username : map[room.hostname] === null ? room.joinanme : room.hostname })
+            //     return
+            // }
             remaining--
             io.to(room.hostname).emit('turn', hostTurn ? {
                 username: room.hostname,
@@ -121,8 +121,6 @@ const GameController = (io, room, players, map) => {
             x: data.x,
             y: data.y
         })
-        socket.on('a', )
-        socket.on('a', )
         clearInterval(interval)
         check = await CheckBoard(board, data.x, data.y)
         if (check) {
