@@ -19,6 +19,7 @@ const GameController = (io, room, players, map) => {
     interval = createInterval()
     
     function createInterval() {
+        clearInterval(interval)
         return setInterval(async () => {
             remaining--
             io.to(room.hostname).emit('turn', hostTurn ? {
