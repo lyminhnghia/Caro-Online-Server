@@ -107,7 +107,7 @@ const Start = (io, socket, rooms, players, user, map) => {
         })
 
         emitTurn()
-        interval = createInterval()
+        interval = await createInterval()
 
         function emitTurn() {
             io.to(room.hostname).emit('turn', hostTurn ? {
@@ -122,7 +122,7 @@ const Start = (io, socket, rooms, players, user, map) => {
         function createInterval() {
             return setInterval(async () => {
                 remaining--
-                emitTurn()
+                await emitTurn()
                 // Kiểm tra thời gian còn lại
                 if (remaining === 0) {
                     position = [-1, -1]
@@ -165,7 +165,7 @@ const Start = (io, socket, rooms, players, user, map) => {
 
                     hostTurn = !hostTurn
                     remaining = room.timelapse
-                    emitTurn()
+                    await emitTurn()
                 }
             }, 1000)
         }
