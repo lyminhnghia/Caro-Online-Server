@@ -40,9 +40,9 @@ const Start = (io, socket, rooms, players, user, map) => {
             }
         }
 
-        hostSocket.on('leave', onLeaveMessage(hostSocket))
+        hostSocket.on('leave', onLeaveMessage)
 
-        joinSocket.on('leave', onLeaveMessage(joinSocket))
+        joinSocket.on('leave', onLeaveMessage)
 
         hostSocket.on('put', async data => {
             // Kiểm tra xem có phải lượt người chơi không
