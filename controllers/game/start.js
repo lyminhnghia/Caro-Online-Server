@@ -1,32 +1,32 @@
 const CheckBoard = require('./checkboard')
 const Start = (io, socket, rooms, players, user, map) => {
-    socket.on('start', () => {
+    socket.on('start', async () => {
         let player = players[socket.id]
         // Kiểm tra xem người chơi có trong phòng không
         if (!player.currentRoom) {
-            socket.emit('start', {success: false, message: 'Bạn chưa tham gia phòng!'})
+            await socket.emit('start', {success: false, message: 'Bạn chưa tham gia phòng!'})
             return
         }
         // Kiểm tra xem người chơi có phải chủ phòng không
         if (player.currentRoom !== user.username) {
-            socket.emit('start', {success: false, message: 'Bạn không phải là chủ phòng!'})
+            await socket.emit('start', {success: false, message: 'Bạn không phải là chủ phòng!'})
             return
         }
         // Kiểm tra xem có người chơi cùng hay không
         if (rooms[player.currentRoom].joinname === null) {
-            socket.emit('start', {success: false, message: 'Không thể bắt đầu do thiếu người chơi!'})
+            await socket.emit('start', {success: false, message: 'Không thể bắt đầu do thiếu người chơi!'})
             return
         }
         //Kiểm tra người chơi còn lại đã sẵn sàng hay chưa
         if (rooms[player.currentRoom].ready === false) {
-            io.to(player.currentRoom).emit('start', {success: false, message: 'Người chơi chưa sẵn sàng!'})
+            await io.to(player.currentRoom).emit('start', {success: false, message: 'Người chơi chưa sẵn sàng!'})
             return
         }
 
         // GameController
         room = rooms[player.currentRoom]
         room.started = true
-        io.to(player.currentRoom).emit('start', {success: true})
+        await io.to(player.currentRoom).emit('start', {success: true})
         hostTurn = true
         remaining = room.timelapse
         hostSocket = io.sockets.connected[map[room.hostname]]
@@ -40,11 +40,11 @@ const Start = (io, socket, rooms, players, user, map) => {
             }
         }
 
-        hostSocket.on('leave', onLeaveMessage(hostSocket))
+        hostSocket.on('leave', socket => onLeaveMessage(socket))
 
-        joinSocket.on('leave', onLeaveMessage(joinSocket))
+        joinSocket.on('leave', socket => onLeaveMessage(socket))
 
-        hostSocket.on('put', data => {
+        hostSocket.on('put', async data => {
             // Kiểm tra xem có phải lượt người chơi không
             if (!hostTurn) {
                 return
@@ -56,27 +56,27 @@ const Start = (io, socket, rooms, players, user, map) => {
 
             board[data.y][data.x] = 1
     
-            io.to(room.hostname).emit('put', {
+            await io.to(room.hostname).emit('put', {
                 username: room.hostname,
                 x: data.x,
                 y: data.y
             })
-            clearInterval(interval)
+            await clearInterval(interval)
             // Kiểm tra kết quả trận đấu
-            check = CheckBoard(board, data.x, data.y)
+            check = await CheckBoard(board, data.x, data.y)
             if (check) {
-                io.to(room.hostname).emit('end', {username: room.hostname})
+                await io.to(room.hostname).emit('end', {username: room.hostname})
                 return
             }
 
             hostTurn = false
             remaining = room.timelapse
-            emitTurn()
-            interval = createInterval()
+            await emitTurn()
+            interval = await createInterval()
             
         })
     
-        joinSocket.on('put', data => {
+        joinSocket.on('put', async data => {
             // Kiểm tra xem có phải lượt người chơi không
             if (hostTurn) {
                 return
@@ -87,30 +87,30 @@ const Start = (io, socket, rooms, players, user, map) => {
             }
             board[data.y][data.x] = 2
     
-            io.to(room.hostname).emit('put', {
+            await io.to(room.hostname).emit('put', {
                 username: room.joinname,
                 x: data.x,
                 y: data.y
             })
-            clearInterval(interval)
+            await clearInterval(interval)
             // Kiểm tra trạng thái bàn cờ
-            check = CheckBoard(board, data.x, data.y)
+            check = await CheckBoard(board, data.x, data.y)
             if (check) {
-                io.to(room.hostname).emit('end', {username: room.joinname})
+                await io.to(room.hostname).emit('end', {username: room.joinname})
                 return
             } 
 
             hostTurn = true
             remaining = room.timelapse
-            emitTurn()
-            interval = createInterval()
+            await emitTurn()
+            interval = await createInterval()
         })
 
-        emitTurn()
-        interval = createInterval()
+        await emitTurn()
+        interval = await createInterval()
 
-        function emitTurn() {
-            io.to(room.hostname).emit('turn', hostTurn ? {
+        async function emitTurn() {
+            await io.to(room.hostname).emit('turn', hostTurn ? {
                 username: room.hostname,
                 remaining: remaining
             } : {
@@ -119,10 +119,10 @@ const Start = (io, socket, rooms, players, user, map) => {
             })
         }
 
-        function createInterval() {
-            return setInterval(() => {
+        async function createInterval() {
+            return setInterval(async () => {
                 remaining--
-                emitTurn()
+                await emitTurn()
                 // Kiểm tra thời gian còn lại
                 if (remaining === 0) {
                     position = [-1, -1]
@@ -138,14 +138,14 @@ const Start = (io, socket, rooms, players, user, map) => {
                     }
                     // Nếu không tìm được nước đi mới
                     if (position[0] === -1) {
-                        io.to(room.hostname).emit('even')
-                        clearInterval(interval)
+                        await io.to(room.hostname).emit('even')
+                        await clearInterval(interval)
                         return
                     } 
                     
                     // Tìm được nước đi mới
                     board[position[1]][position[0]] = hostTurn ? 1 : 2
-                    io.to(room.hostname).emit('put', hostTurn ? {
+                    await io.to(room.hostname).emit('put', hostTurn ? {
                         username: room.hostname,
                         x: position[0],
                         y: position[1]
@@ -156,30 +156,30 @@ const Start = (io, socket, rooms, players, user, map) => {
                     })
                     
                     // Kiểm tra kết quả trận đấu
-                    check = CheckBoard(board, data.x, data.y)
+                    check = await CheckBoard(board, data.x, data.y)
                     if (check === true) {
-                        io.to(room.hostname).emit('end', { username: hostTurn ? room.hostname : room.joinname })
-                        clearInterval(interval)
+                        await io.to(room.hostname).emit('end', { username: hostTurn ? room.hostname : room.joinname })
+                        await clearInterval(interval)
                         return
                     } 
 
                     hostTurn = !hostTurn
                     remaining = room.timelapse
-                    emitTurn()
+                    await emitTurn()
                 }
             }, 1000)
         }
 
-        function onLeaveMessage(socket) {
-            io.to(room.hostname).emit('leave')
+        async function onLeaveMessage(socket) {
+            await io.to(room.hostname).emit('leave')
             if (players[socket.id].username === room.hostname) {
-                io.to(room.hostname).emit('end', { username : room.joinname })
+                await io.to(room.hostname).emit('end', { username : room.joinname })
             } else {
-                io.to(room.hostname).emit('end', { username : room.hostname })
+                await io.to(room.hostname).emit('end', { username : room.hostname })
             }
-            hostSocket.off('leave', onLeaveMessage)
-            joinSocket.off('leave', onLeaveMessage)
-            clearInterval(interval)
+            await hostSocket.off('leave', onLeaveMessage)
+            await joinSocket.off('leave', onLeaveMessage)
+            await clearInterval(interval)
         }
     })
 }
