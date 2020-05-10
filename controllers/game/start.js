@@ -109,7 +109,7 @@ const Start = (io, socket, rooms, players, user, map) => {
         emitTurn()
         interval = await createInterval()
 
-        function emitTurn() {
+        async function emitTurn() {
             io.to(room.hostname).emit('turn', hostTurn ? {
                 username: room.hostname,
                 remaining: remaining
@@ -119,7 +119,7 @@ const Start = (io, socket, rooms, players, user, map) => {
             })
         }
 
-        function createInterval() {
+        async function createInterval() {
             return setInterval(async () => {
                 remaining--
                 await emitTurn()
@@ -156,7 +156,7 @@ const Start = (io, socket, rooms, players, user, map) => {
                     })
                     
                     // Kiểm tra kết quả trận đấu
-                    check = CheckBoard(board, data.x, data.y)
+                    check = await CheckBoard(board, data.x, data.y)
                     if (check) {
                         io.to(room.hostname).emit('end', { username: hostTurn ? room.hostname : room.joinname })
                         clearInterval(interval)
@@ -170,7 +170,7 @@ const Start = (io, socket, rooms, players, user, map) => {
             }, 1000)
         }
 
-        function onLeaveMessage(socket) {
+        async function onLeaveMessage(socket) {
             io.to(room.hostname).emit('leave')
             if (players[socket.id].username === room.hostname) {
                 io.to(room.hostname).emit('end', { username : room.joinname })
