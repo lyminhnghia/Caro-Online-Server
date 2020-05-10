@@ -40,9 +40,9 @@ const Start = (io, socket, rooms, players, user, map) => {
             }
         }
 
-        hostSocket.on('leave', onLeaveMessage)
+        hostSocket.on('leave', onLeaveMessage(hostSocket))
 
-        joinSocket.on('leave', onLeaveMessage)
+        joinSocket.on('leave', onLeaveMessage(joinSocket))
 
         hostSocket.on('put', async data => {
             // Kiểm tra xem có phải lượt người chơi không
@@ -157,7 +157,7 @@ const Start = (io, socket, rooms, players, user, map) => {
                     
                     // Kiểm tra kết quả trận đấu
                     check = await CheckBoard(board, data.x, data.y)
-                    if (check) {
+                    if (check === true) {
                         await io.to(room.hostname).emit('end', { username: hostTurn ? room.hostname : room.joinname })
                         await clearInterval(interval)
                         return
