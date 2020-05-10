@@ -156,7 +156,7 @@ const Start = (io, socket, rooms, players, user, map) => {
                     })
                     
                     // Kiểm tra kết quả trận đấu
-                    check = await CheckBoard(board, data.x, data.y)
+                    check = CheckBoard(board, data.x, data.y)
                     if (check) {
                         io.to(room.hostname).emit('end', { username: hostTurn ? room.hostname : room.joinname })
                         clearInterval(interval)
