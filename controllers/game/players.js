@@ -1,24 +1,26 @@
-const Players = (socket, players, user) => {
-    const data = () => {
+const Players = (io, socket) => {
+
+    function getPlayers() {
         let result = []
-        for (i in players) {
-            let player = players[i]
-            if (player.currentRoom) {
+        let sockets = io.sockets.connected
+        console.log(sockets)
+        for (i in sockets) {
+            if (socket === sockets[i] || sockets[i].room !== null) {
                 continue
             }
-            if (player.username === user.username) {
-                continue
-            }
+            let user = sockets[i].user
             result.push({
-                username : player.username,
-                imageUrl : player.imageUrl,
-                elo : player.elo
+                username : user.username,
+                imageUrl : user.imageUrl,
+                elo : user.elo
             })
         }
         return result
     }
-    socket.on('players', async () => {
-        let result = await data()
+
+    socket.on('players', () => {
+        console.log('players')
+        result = getPlayers()
         socket.emit('players', result)
     })
 }

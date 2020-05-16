@@ -1,6 +1,11 @@
-const Create = (socket, rooms, players, user) => {
-    socket.on('create', async data => {
-        rooms[user.username] = {
+const PLayer = require('./player')
+
+const Create = (socket) => {
+    socket.on('create', data => {
+
+        let user = socket.user
+
+        socket.room = {
             hostname        : user.username,
             joinname        : null,
             password        : data.password,
@@ -10,20 +15,20 @@ const Create = (socket, rooms, players, user) => {
             started         : false
         }
     
-        await socket.join(user.username)
+        socket.join(user.username)
 
-        havePassword = data.password !== ''
-
-        await socket.broadcast.emit('create', {
+        // thông báo có phòng được tạo
+        socket.broadcast.emit('create', {
             username        : user.username,
             imageUrl        : user.imageUrl,
-            havePassword    : havePassword,
             elo             : user.elo,
+            havePassword    : data.password !== '',
             timelapse       : data.timelapse,
             rank            : data.rank
         })
 
-        players[socket.id].currentRoom = user.username
+        // thông báo người chơi bận
+        PLayer(socket, true)
     })
 }
 

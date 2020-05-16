@@ -1,49 +1,73 @@
-const Accept = (io, socket, players, user, map) => {
-    socket.on('accept', async data => {{
+const Player = require('./player')
+
+const Accept = (io, socket, map) => {
+
+    socket.on('accept', data => {{
+
+        // nếu người đó không online
         if (!map[data.username]) {
-            await socket.emit('accept', { success: false, message: 'Người chơi đã offline'})
-            return
-        }
-        if (players[map[data.username]].currentRoom !== null) {
-            await socket.emit('accept', { success: false, message: 'Người chơi đang bận' })
+            socket.emit('accept', { 
+                message : 'Người chơi đã offline'
+            })
             return
         }
 
-        rooms[data.username] = {
+        // nếu người chơi đang bận
+        if (map[data.username].room !== null) {
+            socket.emit('accept', { 
+                message : 'Người chơi đang bận' 
+            })
+            return
+        }
+
+        // nếu không có lời mời
+        if (!map[data.username].challenge[socket.user.username]) {
+            socket.emit('accept', { 
+                message : 'Không có lời mời tương ứng' 
+            })
+            return
+        }
+        
+        // nếu lời mời quá 15 giấy
+        if (map[data.username].challenge[socket.user.username] + 15000 < Date.now()) {
+            socket.emit('accept', { 
+                message : 'Lời mời hết hiệu lực' 
+            })
+            return
+        }
+
+        // tạo phòng
+        let room = {
             hostname        : data.username,
-            joinname        : user.username,
+            joinname        : socket.user.username,
             password        : '',
             timelapse       : 20,
-            rank            : true,
+            rank            : false,
             ready           : false,
             started         : false
         }
-    
-        await socket.join(data.username)
-        await io.sockets.connected[map[data.username]].join(data.username)
-        await socket.to(data.username).emit('accept', { 
-            success: true,
-            username: user.username,
-            imageUrl: user.imageUrl,
-            elo: user.elo
-        })
 
-        let host = players[map[data.username]]
+        // tham gia phòng
+        socket.join(data.username)
+        socket.room = room
+        map[data.username].join(data.username)
+        map[data.username].room = room
 
-        await socket.emit('accept', { 
-            success: true,
-            username: host.username,
-            imageUrl: host.imageUrl,
-            elo: host.elo
-        })
+        // thông báo 2 người chơi bận
+        Player(socket, true)
+        Player(map[data.username], true)
 
-        await io.sockets.connected[map[data.username]].broadcast.emit('player', {
-            busy: true,
-            username: data.username
-        })
-        await socket.broadcast.emit('player', {
-            busy: true,
-            username: user.username
+        let host = map[data.username].user;
+        let join = socket.user;
+
+        // thông báo gửi lại cho 2 người chơi thông tin
+        io.to(room.hostname).emit('challenge', {
+            host : host,
+            join : join,
+            room : {
+                rank : room.rank,
+                timelapse : room.timelapse
+            }
         })
     }})
 }

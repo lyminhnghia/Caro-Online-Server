@@ -1,16 +1,30 @@
-const Room = (io, socket, rooms, user) => {
-    socket.on('room', async data => {
-        havePassword = data.password !== ''
+const Room = (io, socket) => {
+ 
+    socket.on('room', data => {
 
-        rooms[user.username].password = data.password
-        rooms[user.username].timelapse = data.timelapse
-        rooms[user.username].rank = data.rank
+        // nếu không trong phòng
+        if (socket.room === null) {
+            return
+        }
 
-        await io.emit('room', {
-            username        : user.username,
-            havePassword    : havePassword,
-            timelapse       : data.timelapse,
-            rank            : data.rank
+        let room = socket.room
+
+        // nếu không phải chủ phòng
+        if (room.hostname !== socket.user.username) {
+            return
+        }
+
+        // cập nhật cài đặt phòng
+        room.password = data.password
+        room.timelapse = data.timelapse
+        room.rank = data.rank
+    
+        // thông báo thay đổi cho mọi người
+        io.to(room.hostname).emit('room', {
+            username        : room.hostname,
+            havePassword    : room.password !== '',
+            timelapse       : room.timelapse,
+            rank            : room.rank
         })
     })
 }

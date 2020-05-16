@@ -9,70 +9,83 @@ const Create        = require('./create')
 const Join          = require('./join')
 const Leave         = require('./leave')
 const Kick          = require('./kick')
-const Challenge     = require('./challenge')
+const Invite        = require('./invite')
 const Accept        = require('./accept')
 const Ready         = require('./ready')
 const Start         = require('./start')
 const Room          = require('./room')
 const Disconnect    = require('./disconnect')
+const Player        = require('./player')
 
 module.exports = (io) => {
-    const players = {}
+
     const map = []
-    const rooms = {}
+
     io.on('connection', socketJwt.authorize({
         secret: 'uet-team-secret',
         timeout: 10000
     })).on('authenticated', async socket => {
+
         const user = (await sequelize.query(`Select username, elo, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
-        socket.broadcast.emit('player', {
-            busy: false,
-            username: user.username,
-            imageUrl: user.imageUrl,
-            elo: user.elo
-        })
-
+        // Nếu đã đăng nhập thì ngắt kết nối
         if (map[user.username]) {
-            io.sockets.connected[socket.id].disconnect()
-        } else {
-            map[user.username] = socket.id
+            socket.disconnect()
+            return
         }
 
-        players[socket.id] = {
-            username            : user.username,
-            elo                 : user.elo,
-            imageUrl            : user.imageUrl,
-            currentRoom         : null
-        }
+        // liên kết username với socket
+        map[user.username] = socket
 
-        Information(socket, user)
+        // gắn thông tin user, room, challenge cho socket
+        socket.user = user
+        socket.room = null
+        socket.challenge = []
 
-        Players (socket, players, user)
+        // gửi thông báo cho mọi người là đang online
+        Player(socket, false)
 
-        Rooms(socket, players, rooms, map)
+        // gửi thông tin user lúc bắt đầu và khi có yêu cầu
+        Information(socket)
 
-        Create(socket, rooms, players, user)
+        // gửi thông tin các user đang rảnh khi có yêu cầu
+        Players(io, socket)
 
-        Join(io, socket, rooms, players, user, map)
+        // gửi thông tin các phòng khi có yêu cầu
+        Rooms(io, socket)
 
-        Leave(io, socket, rooms, players, user, map)
+        // xử lý khi nhận yêu cầu tạo phòng
+        Create(socket)
 
-        Kick(io, socket, rooms, players, map)
+        // xử lý khi nhận yêu cầu tham gia phòng
+        Join(socket, map)
 
-        Challenge(io, socket, user, map)
+        // xử lý khi chủ phòng đuổi người chơi cùng phòng
+        Kick(io, socket, map)
 
-        Accept(io, socket, players, user, map)
+        // xử lý khi người chơi thoát khỏi phòng
+        Leave(socket, map)
 
-        Ready(io, socket, rooms, players) 
+        // gửi lời mời cho người khác
+        Invite(socket, map)
 
-        Start(io, socket, rooms, players, user, map)
+        // chấp nhận lời mời
+        Accept(io, socket, map)
+
+        // xử lý khi người chơi sẵn sàng
+        Ready(io, socket) 
+
+        // bắt đầu trận đấu
+        Start(io, socket, map)
         
-        Room(io, socket, rooms, user)
+        // xử lý khi cập nhật lại thông tin phòng
+        Room(io, socket)
         
-        Disconnect(io, socket, rooms, players, user, map)
+        // xử lý khi mất kết nối
+        Disconnect(socket, map)
+
     })
 
 }

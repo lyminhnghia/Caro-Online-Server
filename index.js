@@ -22,5 +22,5 @@ app.get("/", function (req, res) {
     res.send("Server Caro Online!")
 })
 
-var port = process.env.PORT || 3000
+var port = process.env.PORT
 server.listen(port)

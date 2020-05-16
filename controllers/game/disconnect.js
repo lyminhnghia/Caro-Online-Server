@@ -1,41 +1,58 @@
-const Disconnect = (io, socket, rooms, players, user, map) => {
+const Player = require('./player')
+
+const Disconnect = (socket, map) => {
+
     socket.on('disconnect', () => {
 
-        console.log(`Disconnected: ${socket.id}`)
-        if (map[user.username] !== socket.id) {
+        console.log(`Disconnected: ${socket.user.username}`)
+
+        let room = socket.room
+
+        let user = socket.user
+
+        // nếu như không trong phòng
+        if (room === null) {
+            Player(socket, true)
+            delete map[user.username]
             return
         }
-        let player = players[socket.id]
-        if (player.currentRoom) {
-            let room = rooms[player.currentRoom]
-            if (!room.started) {
-                if (player.username !== player.currentRoom) {
-                    room.joinname = null
-                    let host = players[map[room.hostname]]
-                    io.emit('create', {
-                        username        : host.username,
-                        imageUrl        : host.imageUrl,
-                        havePassword    : havePassword,
-                        elo             : host.elo,
-                        timelapse       : room.timelapse,
-                        rank            : room.rank
-                    })
-                    io.to(players[socket.id].currentRoom).emit('leave')
-                } else {
-                    io.to(player.username).emit('leave')
-                    if (rooms[user.username].joinname !== null) {
-                        players[map[rooms[user.username].joinname]].currentRoom = null
-                    }
-                    delete rooms[user.username]
-                }
+
+        // thông báo đã rời đi
+        socket.to(room.hostname).emit('leave')
+
+        // nếu như là chủ phòng
+        if (user.username === room.hostname) {
+
+            // xóa thông tin chủ phòng
+            room.hostname = null
+        
+        // nếu không phải chủ phòng
+        } else {
+
+            // xóa thông tin người tham gia
+            room.joinname = null
+
+            // nếu phòng chưa bắt đầu
+            if (room.started === false) {
+
+                // lấy thông tin chủ phòng
+                let host = map[room.hostname].user
+
+                // thông báo phòng trống
+                map[room.hostname].broadcast.emit('create', {
+                    username        : host.username,
+                    imageUrl        : host.imageUrl,
+                    elo             : host.elo,
+                    havePassword    : room.password !== '',
+                    timelapse       : room.timelapse,
+                    rank            : room.rank
+                })
             }
         }
-        socket.broadcast.emit('player', {
-            busy: true,
-            username: player.username
-        })
+        
+        // xóa liên kết user ~ socket
         delete map[user.username]
-        delete players[socket.id]
+
     })
 }
 

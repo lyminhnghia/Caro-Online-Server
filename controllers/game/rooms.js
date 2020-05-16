@@ -1,27 +1,28 @@
-const Rooms = (socket, players, rooms, map) => {
-    const data = () => {
+const Rooms = (io, socket) => {
+
+    function getRooms() {
         let result = []
-        for (i in rooms) {
-            let room = rooms[i]
-            if (room.joinname) {
+        let sockets = io.sockets.connected
+        for (i in sockets) {
+            let room = sockets[i].room
+            if (room === null || room.started === true || room.joinname !== null) {
                 continue
             }
-            let host = players[map[room.hostname]]
-            let havePassword = room.password !== ''
+            let user = sockets[i].user;
             result.push({
-                username: host.username,
-                imageUrl: host.imageUrl,
-                timelapse: room.timelapse,
-                rank: room.rank,
-                elo: host.elo,
-                havePassword : havePassword
+                username : user.username,
+                imageUrl : user.imageUrl,
+                elo : user.elo,
+                timelapse : room.timelapse,
+                rank : room.rank,
+                havePassword : room.password !== ''
             })
         }
         return result
     }
-    socket.on('rooms', async () => {
-        let result =  await data()
-        socket.emit('rooms', result)
+
+    socket.on('rooms', () => {
+        socket.emit('rooms', getRooms())
     })
 }
 
