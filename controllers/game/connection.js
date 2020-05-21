@@ -27,7 +27,7 @@ module.exports = (io) => {
         timeout: 10000
     })).on('authenticated', async socket => {
 
-        socket.user = (await sequelize.query(`Select username, elo, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
+        user = (await sequelize.query(`Select username, elo, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
@@ -41,6 +41,7 @@ module.exports = (io) => {
         map[user.username] = socket
 
         // gắn thông tin user, room, challenge cho socket
+        socket.user = user
         socket.room = null
         socket.challenge = []
 
