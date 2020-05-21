@@ -5,6 +5,7 @@ const Image = (socket) => {
     socket.on('image', data => {
         socket.user.imageUrl = data.imageUrl
         User.update({
+            imageUrl: data.imageUrl,
             where: {
                 username: socket.user.username
             }
