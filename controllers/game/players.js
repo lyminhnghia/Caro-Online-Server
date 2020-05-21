@@ -19,7 +19,6 @@ const Players = (io, socket) => {
     }
 
     socket.on('players', () => {
-        console.log('players')
         result = getPlayers()
         socket.emit('players', result)
     })

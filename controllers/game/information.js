@@ -3,7 +3,6 @@ const Information = (socket) => {
     emitInformation()
 
     socket.on('information', () => {
-        console.log('run')
         emitInformation()
     })
 
