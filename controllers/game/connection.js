@@ -16,6 +16,7 @@ const Start         = require('./start')
 const Room          = require('./room')
 const Disconnect    = require('./disconnect')
 const Player        = require('./player')
+const Image         = require('./Image')
 
 module.exports = (io) => {
 
@@ -49,6 +50,9 @@ module.exports = (io) => {
 
         // gửi thông tin user lúc bắt đầu và khi có yêu cầu
         Information(socket)
+
+        // gửi hình ảnh cho người dùng
+        Image(socket)
 
         // gửi thông tin các user đang rảnh khi có yêu cầu
         Players(io, socket)
