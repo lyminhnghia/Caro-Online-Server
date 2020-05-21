@@ -1,15 +1,10 @@
 const db        = require('../../configs/db.config')
-const User      = db.user
+const sequelize = db.sequelize
 
 const Image = (socket) => {
     socket.on('image', data => {
         socket.user.imageUrl = data.imageUrl
-        User.update({
-            imageUrl: data.imageUrl,
-            where: {
-                username: socket.user.username
-            }
-        }).catch(err => console.log(err))
+        sequelize.query(`UPDATE users set imageUrl = ${data.imageUrl} WHERE username = ${socket.user.username}`)
     })
 }
 
