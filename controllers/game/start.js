@@ -1,4 +1,6 @@
-const CheckBoard = require('./checkboard')
+const CheckBoard    = require('./checkboard')
+const db            = require('../../configs/db.config')
+const sequelize     = db.sequelize
 const Start = (io, socket, map) => {
 
     socket.on('start', async () => {
@@ -141,6 +143,11 @@ const Start = (io, socket, map) => {
                     io.to(room.hostname).emit('win', { 
                         username : turn
                     })
+                    if (turn === hostSocket.user.username) {
+                        updateElo(hostSocket, joinSocket)
+                    } else {
+                        updateElo(joinSocket, hostSocket)
+                    }
                     closeMatch()
                     return
                 } 
@@ -176,6 +183,11 @@ const Start = (io, socket, map) => {
                 io.to(room.hostname).emit('win', {
                     username : turn
                 })
+                if (turn === hostSocket.user.username) {
+                    updateElo(hostSocket, joinSocket)
+                } else {
+                    updateElo(joinSocket, hostSocket)
+                }
                 closeMatch()
                 return
             } 
@@ -185,6 +197,31 @@ const Start = (io, socket, map) => {
             interval = createInterval()
         }
 
+        function updateElo(win, lose) {
+            QWin    = Math.pow(10, win.user.elo/400)
+            QLose   = Math.pow(10, lose.user.elo/400)
+            EWin    = QWin/(QWin+QLose)
+            ELose   = QLose/(QWin+QLose)
+            k       = [25, 25, 20, 15, 10]
+
+            win.user.elo    = win.user.elo + k[parseInt(win.user.elo/400, 10)] * (1 - EWin)
+            lose.user.elo   = lose.user.elo + k[parseInt(lose.user.elo/400, 10)] * (1 - ELose)
+
+            sequelize.query(`UPDATE users set elo = ${win.user.elo} WHERE username = '${win.user.username}'`)
+            sequelize.query(`UPDATE users set elo = ${lose.user.elo} WHERE username = '${lose.user.username}'`)
+
+            win.emit('information', {
+                username : win.user.username,
+                elo: win.user.elo,
+                imageUrl : win.user.imageUrl
+            })
+            lose.emit('information', {
+                username : lose.user.username,
+                elo: lose.user.elo,
+                imageUrl : lose.user.imageUrl
+            })
+        }
+
         function onHostLeave() {
             clearInterval(interval)
             let message = hostSocket.user.username + ' đã thoát trận'
@@ -192,6 +229,7 @@ const Start = (io, socket, map) => {
                 username : joinSocket.user.username,
                 message : message
             })
+            updateElo(joinSocket, hostSocket)
             closeMatch()
         }
 
@@ -202,6 +240,7 @@ const Start = (io, socket, map) => {
                 username : hostSocket.user.username,
                 message : message
             })
+            updateElo(hostSocket, joinSocket)
             closeMatch()
         }
 
@@ -212,6 +251,7 @@ const Start = (io, socket, map) => {
                 username : joinSocket.user.username,
                 message : message
             })
+            updateElo(joinSocket, hostSocket)
             closeMatch()
         }
 
@@ -222,6 +262,7 @@ const Start = (io, socket, map) => {
                 username : hostSocket.user.username,
                 message : message
             })
+            updateElo(hostSocket, joinSocket)
             closeMatch()
         }
 
