@@ -16,7 +16,7 @@ module.exports = (sequelize, Sequelize) => {
         },
         elo     :   {
             type        : Sequelize.FLOAT,
-            defaultValue: 500.0
+            defaultValue: 1200.0
         },
         imageUrl:   {
             type        : Sequelize.STRING,

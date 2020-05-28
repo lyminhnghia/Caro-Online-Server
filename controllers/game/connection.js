@@ -17,6 +17,7 @@ const Room          = require('./room')
 const Disconnect    = require('./disconnect')
 const Player        = require('./player')
 const Image         = require('./Image')
+const LeaderBoard   = require('./leaderboard')
 
 module.exports = (io) => {
 
@@ -62,6 +63,9 @@ module.exports = (io) => {
 
         // xử lý khi nhận yêu cầu tạo phòng
         Create(socket)
+
+        // xếp hạng người chơi theo elo
+        LeaderBoard(socket)
 
         // xử lý khi nhận yêu cầu tham gia phòng
         Join(socket, map)
