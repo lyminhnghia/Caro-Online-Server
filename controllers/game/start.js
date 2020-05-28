@@ -202,10 +202,10 @@ const Start = (io, socket, map) => {
             QLose   = Math.pow(10, lose.user.elo/400)
             EWin    = QWin/(QWin+QLose)
             ELose   = QLose/(QWin+QLose)
-            k       = [25, 25, 20, 15, 10]
+            k       = [25, 25, 25, 25, 20, 15, 10, 10, 10, 10, 10, 10]
 
             win.user.elo    = win.user.elo + k[parseInt(win.user.elo/400, 10)] * (1 - EWin)
-            lose.user.elo   = lose.user.elo + k[parseInt(lose.user.elo/400, 10)] * (1 - ELose)
+            lose.user.elo   = lose.user.elo + k[parseInt(lose.user.elo/400, 10)] * (0 - ELose)
 
             sequelize.query(`UPDATE users set elo = ${win.user.elo} WHERE username = '${win.user.username}'`)
             sequelize.query(`UPDATE users set elo = ${lose.user.elo} WHERE username = '${lose.user.username}'`)
