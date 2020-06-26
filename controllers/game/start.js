@@ -82,7 +82,20 @@ const Start = (io, socket, map) => {
         hostSocket.on('put', data => onPut(room.hostname, data))
         joinSocket.on('put', data => onPut(room.joinname, data))
 
-        interval = createInterval()
+        hostSocket.on('first', data => {
+            hostFirst = data.first
+            hostSocket.removeAllListeners('first')
+        })
+
+        joinSocket.on('first', data => {
+            joinFirst = data.first
+            joinSocket.removeAllListeners('first')
+        })
+
+        hostFirst = null
+        joinFirst = null
+
+        interval = null
 
         function emitTurn() {
             io.to(room.hostname).emit('turn', {
@@ -98,6 +111,25 @@ const Start = (io, socket, map) => {
                 y: position.y
             })
         }
+
+        timeout = setTimeout(function() {
+            if (hostFirst === null && joinFirst === null) {
+                turn = Math.floor(Math.random() * 2) === 1 ? hostSocket.user.username : joinSocket.user.username
+            } else if (hostFirst === null) {
+                turn = joinFirst ? joinSocket.user.username : hostSocket.user.username
+            } else if (joinFirst === null) {
+                turn = hostFirst ? hostSocket.user.username : joinSocket.user.username
+            } else if ((hostFirst ^ joinFirst) === 1) {
+                turn = hostFirst ? hostSocket.user.username : joinSocket.user.username
+            } else {
+                turn = Math.floor(Math.random() * 2) === 1 ? hostSocket.user.username : joinSocket.user.username
+            }
+            io.to(room.hostname).emit('first', {
+                username : turn
+            })
+            interval = createInterval()
+        }, 3000)
+        
 
         function createInterval() {
             emitTurn()
@@ -141,12 +173,15 @@ const Start = (io, socket, map) => {
                 check = CheckBoard(board, position.x, position.y)
                 if (check === true) {
                     io.to(room.hostname).emit('win', { 
-                        username : turn
+                        username : turn,
+                        rematch : true
                     })
-                    if (turn === hostSocket.user.username) {
-                        updateElo(hostSocket, joinSocket)
-                    } else {
-                        updateElo(joinSocket, hostSocket)
+                    if (room.rank) {
+                        if (turn === hostSocket.user.username) {
+                            updateElo(hostSocket, joinSocket)
+                        } else {
+                            updateElo(joinSocket, hostSocket)
+                        }
                     }
                     closeMatch()
                     return
@@ -181,14 +216,18 @@ const Start = (io, socket, map) => {
             check = CheckBoard(board, position.x, position.y)
             if (check === true) {
                 io.to(room.hostname).emit('win', {
-                    username : turn
+                    username : turn,
+                    rematch : true
                 })
-                if (turn === hostSocket.user.username) {
-                    updateElo(hostSocket, joinSocket)
-                } else {
-                    updateElo(joinSocket, hostSocket)
+                if (room.rank) {
+                    if (turn === hostSocket.user.username) {
+                        updateElo(hostSocket, joinSocket)
+                    } else {
+                        updateElo(joinSocket, hostSocket)
+                    }
                 }
                 closeMatch()
+                
                 return
             } 
 
@@ -224,53 +263,70 @@ const Start = (io, socket, map) => {
 
         function onHostLeave() {
             clearInterval(interval)
+            clearTimeout(timeout)
             let message = hostSocket.user.username + ' đã thoát trận'
             joinSocket.emit('win', {
                 username : joinSocket.user.username,
                 message : message
             })
-            updateElo(joinSocket, hostSocket)
+            if (room.rank) {
+                updateElo(joinSocket, hostSocket)
+            }
             closeMatch()
         }
 
         function onJoinLeave() {
             clearInterval(interval)
+            clearTimeout(timeout)
             let message = joinSocket.user.username + ' đã thoát trận'
             hostSocket.emit('win', {
                 username : hostSocket.user.username,
                 message : message
             })
-            updateElo(hostSocket, joinSocket)
+            if (room.rank) {
+                updateElo(joinSocket, hostSocket)
+            }
             closeMatch()
         }
 
         function onHostDisconnect() {
             clearInterval(interval)
+            clearTimeout(timeout)
             let message = hostSocket.user.username + ' bị mất kết nối'
             joinSocket.emit('win', {
                 username : joinSocket.user.username,
                 message : message
             })
-            updateElo(joinSocket, hostSocket)
+            if (room.rank) {
+                updateElo(joinSocket, hostSocket)
+            }
             closeMatch()
         }
 
         function onJoinDisconnect() {
             clearInterval(interval)
+            clearTimeout(timeout)
             let message = joinSocket.user.username + ' bị mất kết nối'
             hostSocket.emit('win', {
                 username : hostSocket.user.username,
                 message : message
             })
-            updateElo(hostSocket, joinSocket)
+            if (room.rank) {
+                updateElo(joinSocket, hostSocket)
+            }
             closeMatch()
         }
+
 
         function closeMatch() {
             hostSocket.removeListener('leave', onHostLeave)
             hostSocket.removeListener('disconnect', onHostDisconnect)
             joinSocket.removeListener('leave', onJoinLeave)
             joinSocket.removeListener('disconnect', onJoinDisconnect)
+            hostSocket.removeAllListeners('put')
+            joinSocket.removeAllListeners('put')
+            hostSocket.removeAllListeners('first') 
+            joinSocket.removeAllListeners('first')
         }
     })
 }

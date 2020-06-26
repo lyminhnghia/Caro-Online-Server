@@ -18,6 +18,7 @@ const Disconnect    = require('./disconnect')
 const Player        = require('./player')
 const Image         = require('./Image')
 const LeaderBoard   = require('./leaderboard')
+const Rematch       = require('./rematch')
 
 module.exports = (io) => {
 
@@ -72,6 +73,9 @@ module.exports = (io) => {
 
         // xử lý khi chủ phòng đuổi người chơi cùng phòng
         Kick(io, socket, map)
+
+        // xử lý khi người chơi muốn đấu lại
+        Rematch(io, socket)
 
         // xử lý khi người chơi thoát khỏi phòng
         Leave(socket, map)
