@@ -1,6 +1,6 @@
 const CheckBoard = (board, x, y) => {
-    for (let offsetX = 0; offsetX <= 1; offsetX++) {
-        for (let offsetY = 0; offsetY <= 1; offsetY++) {
+    for (let offsetX = -1; offsetX <= 1; offsetX++) {
+        for (let offsetY = -1; offsetY <= 1; offsetY++) {
             if (offsetX === 0 && offsetY === 0) {
                 continue
             }
