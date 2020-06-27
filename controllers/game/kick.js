@@ -22,6 +22,10 @@ const Kick = (io, socket, map) => {
             return
         }
 
+        if (room.started == true) {
+            return
+        }
+
         // thông báo cho người còn lại bị đuổi
         io.to(room.hostname).emit('kick')
 

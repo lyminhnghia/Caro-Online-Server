@@ -4,8 +4,11 @@ const Rooms = (io, socket) => {
         let result = []
         let sockets = io.sockets.connected
         for (i in sockets) {
+            if (i === socket) {
+                continue
+            }
             let room = sockets[i].room
-            if (room === null || room.started === true || room.joinname !== null) {
+            if (room == null || room.started == true || room.joinname != null) {
                 continue
             }
             let user = sockets[i].user;
