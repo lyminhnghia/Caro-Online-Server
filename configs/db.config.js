@@ -17,5 +17,6 @@ db.Sequelize = Sequelize
 db.sequelize = sequelize
 
 db.user     =   require('../models/user')(sequelize, Sequelize)
+db.history  =   require('../models/history')(sequelize, Sequelize)
 
 module.exports = db

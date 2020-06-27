@@ -6,6 +6,11 @@ const Start = (io, socket, map) => {
     socket.on('start', async () => {
 
         let room = socket.room
+        let history = ''
+        first = ''
+        winner = ''
+        winPoint = 0
+        losePoint = 0
 
         // Kiểm tra xem người chơi có trong phòng không
         if (room === null) {
@@ -127,6 +132,7 @@ const Start = (io, socket, map) => {
             io.to(room.hostname).emit('first', {
                 username : turn
             })
+            first = turn
             interval = createInterval()
         }, 3000)
         
@@ -172,6 +178,7 @@ const Start = (io, socket, map) => {
                 // Kiểm tra kết quả trận đấu
                 check = CheckBoard(board, position.x, position.y)
                 if (check === true) {
+                    winner = turn
                     io.to(room.hostname).emit('win', { 
                         username : turn,
                         rematch : true
@@ -205,9 +212,17 @@ const Start = (io, socket, map) => {
             if (board[position.y][position.x] !== 0) {
                 return
             }
-            
+            /*==================================================*/
+            if (history !== '') {
+                history = history + ';'
+            }
+            /*==================================================*/
             board[position.y][position.x] = username == room.hostname ? 1 : 2
-    
+            
+            /*==================================================*/
+            history = history + position.x + ',' + position.y
+            /*==================================================*/
+            
             emitPut(position)
 
             clearInterval(interval)
@@ -215,6 +230,7 @@ const Start = (io, socket, map) => {
             // Kiểm tra trạng thái bàn cờ
             check = CheckBoard(board, position.x, position.y)
             if (check === true) {
+                winner = turn
                 io.to(room.hostname).emit('win', {
                     username : turn,
                     rematch : true
@@ -243,8 +259,13 @@ const Start = (io, socket, map) => {
             ELose   = QLose/(QWin+QLose)
             k       = [25, 25, 25, 25, 20, 15, 10, 10, 10, 10, 10, 10]
 
-            win.user.elo    = win.user.elo + k[parseInt(win.user.elo/400, 10)] * (1 - EWin)
-            lose.user.elo   = lose.user.elo + k[parseInt(lose.user.elo/400, 10)] * (0 - ELose)
+            winPoint = k[parseInt(win.user.elo/400, 10)] * (1 - EWin)
+            losePoint = k[parseInt(lose.user.elo/400, 10)] * (0 - ELose)
+            winPoint = Math.round((winPoint + Number.EPSILON) * 100) / 100
+            losePoint = Math.round((losePoint + Number.EPSILON) * 100) / 100
+
+            win.user.elo    = win.user.elo + winPoint
+            lose.user.elo   = lose.user.elo + losePoint
 
             win.user.elo    = Math.round((win.user.elo + Number.EPSILON) * 100) / 100
             lose.user.elo   = Math.round((lose.user.elo + Number.EPSILON) * 100) / 100
@@ -268,6 +289,7 @@ const Start = (io, socket, map) => {
             clearInterval(interval)
             clearTimeout(timeout)
             let message = hostSocket.user.username + ' đã thoát trận'
+            winner = joinSocket.user.username
             joinSocket.emit('win', {
                 username : joinSocket.user.username,
                 message : message
@@ -282,6 +304,7 @@ const Start = (io, socket, map) => {
             clearInterval(interval)
             clearTimeout(timeout)
             let message = joinSocket.user.username + ' đã thoát trận'
+            winner = hostSocket.user.username
             hostSocket.emit('win', {
                 username : hostSocket.user.username,
                 message : message
@@ -296,6 +319,7 @@ const Start = (io, socket, map) => {
             clearInterval(interval)
             clearTimeout(timeout)
             let message = hostSocket.user.username + ' bị mất kết nối'
+            winner = joinSocket.user.username
             joinSocket.emit('win', {
                 username : joinSocket.user.username,
                 message : message
@@ -310,6 +334,7 @@ const Start = (io, socket, map) => {
             clearInterval(interval)
             clearTimeout(timeout)
             let message = joinSocket.user.username + ' bị mất kết nối'
+            winner = hostSocket.user.username
             hostSocket.emit('win', {
                 username : hostSocket.user.username,
                 message : message
@@ -330,6 +355,19 @@ const Start = (io, socket, map) => {
             joinSocket.removeAllListeners('put')
             hostSocket.removeAllListeners('first') 
             joinSocket.removeAllListeners('first')
+            loser = winner === hostSocket.user.username ? joinSocket.user.username : hostSocket.user.username
+            if (winner === hostSocket.user.username) {
+                hostSocket.user.win++
+                joinSocket.user.lose++
+                sequelize.query(`UPDATE users set win = ${hostSocket.user.win} WHERE username = '${winner}'`)
+                sequelize.query(`UPDATE users set lose = ${joinSocket.user.lose} WHERE username = '${loser}'`)
+            } else {
+                joinSocket.user.win++
+                hostSocket.user.lose++
+                sequelize.query(`UPDATE users set win = ${joinSocket.user.win} WHERE username = '${winner}'`)
+                sequelize.query(`UPDATE users set lose = ${hostSocket.user.lose} WHERE username = '${loser}'`)
+            }
+            sequelize.query(`INSERT INTO histories(winner, loser, history, first, winPoint, losePoint) VALUES ('${winner}', '${loser}', '${history}', '${first}', ${winPoint}, ${losePoint})`)
         }
     })
 }

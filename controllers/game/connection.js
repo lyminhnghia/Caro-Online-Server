@@ -29,7 +29,7 @@ module.exports = (io) => {
         timeout: 10000
     })).on('authenticated', async socket => {
 
-        user = (await sequelize.query(`Select username, elo, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
+        user = (await sequelize.query(`Select username, elo, win, lose, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
