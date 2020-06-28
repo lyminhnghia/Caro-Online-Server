@@ -19,6 +19,7 @@ const Player        = require('./player')
 const Image         = require('./Image')
 const LeaderBoard   = require('./leaderboard')
 const Rematch       = require('./rematch')
+const Statistic     = require('./statistic')
 
 module.exports = (io) => {
 
@@ -91,6 +92,9 @@ module.exports = (io) => {
 
         // bắt đầu trận đấu
         Start(io, socket, map)
+
+        // thống kê
+        Statistic(socket);
         
         // xử lý khi cập nhật lại thông tin phòng
         Room(io, socket)

@@ -1,11 +1,10 @@
 const db            = require('../../configs/db.config')
 const sequelize     = db.sequelize
 
-const Statistic = (io, socket) => {
+const Statistic = (socket) => {
  
-    socket.on('statistic', () => {
+    socket.on('statistic', async () => {
 
-        // 
         result = {}
         result.win = socket.user.win
         result.lose = socket.user.lose

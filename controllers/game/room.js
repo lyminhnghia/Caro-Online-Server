@@ -18,6 +18,7 @@ const Room = (io, socket) => {
         room.password = data.password
         room.timelapse = data.timelapse
         room.rank = data.rank
+        room.ready = false
     
         // thông báo thay đổi cho mọi người
         io.to(room.hostname).emit('room', {
