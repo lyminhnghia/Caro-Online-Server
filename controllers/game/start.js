@@ -367,7 +367,8 @@ const Start = (io, socket, map) => {
                 sequelize.query(`UPDATE users set win = ${joinSocket.user.win} WHERE username = '${winner}'`)
                 sequelize.query(`UPDATE users set lose = ${hostSocket.user.lose} WHERE username = '${loser}'`)
             }
-            sequelize.query(`INSERT INTO histories(winner, loser, history, first, winPoint, losePoint, createdAt, updateAt) VALUES ('${winner}', '${loser}', '${history}', '${first}', ${winPoint}, ${losePoint}, '${Date.now()}', '${Date.now()}')`)
+            date = Date(Date.now())
+            sequelize.query(`INSERT INTO histories(winner, loser, history, first, winPoint, losePoint, createdAt, updatedAt) VALUES ('${winner}', '${loser}', '${history}', '${first}', ${winPoint}, ${losePoint}, '${date}', '${date}')`)
         }
     })
 }
