@@ -3,7 +3,6 @@ const Players = (io, socket) => {
     function getPlayers() {
         let result = []
         let sockets = io.sockets.connected
-        console.log(sockets)
         for (i in sockets) {
             if (socket === sockets[i] || sockets[i].room !== null) {
                 continue

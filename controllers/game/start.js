@@ -173,6 +173,7 @@ const Start = (io, socket, map) => {
                     
                 // Tìm được nước đi mới
                 board[position.y][position.x] = turn == room.hostname ? 1 : 2
+                updateHistory(position.x, position.y)
                 emitPut(position)
                     
                 // Kiểm tra kết quả trận đấu
@@ -212,16 +213,10 @@ const Start = (io, socket, map) => {
             if (board[position.y][position.x] !== 0) {
                 return
             }
-            /*==================================================*/
-            if (history !== '') {
-                history = history + ';'
-            }
-            /*==================================================*/
+
             board[position.y][position.x] = username == room.hostname ? 1 : 2
             
-            /*==================================================*/
-            history = history + position.x + ',' + position.y
-            /*==================================================*/
+            updateHistory(position.x, position.y)
             
             emitPut(position)
 
@@ -272,17 +267,13 @@ const Start = (io, socket, map) => {
 
             sequelize.query(`UPDATE users set elo = ${win.user.elo} WHERE username = '${win.user.username}'`)
             sequelize.query(`UPDATE users set elo = ${lose.user.elo} WHERE username = '${lose.user.username}'`)
+        }
 
-            win.emit('information', {
-                username : win.user.username,
-                elo: win.user.elo,
-                imageUrl : win.user.imageUrl
-            })
-            lose.emit('information', {
-                username : lose.user.username,
-                elo: lose.user.elo,
-                imageUrl : lose.user.imageUrl
-            })
+        function updateHistory(x, y) {
+            if (history !== '') {
+                history = history + ';'
+            }
+            history = history + (y * 19 + x)
         }
 
         function onHostLeave() {
@@ -369,6 +360,16 @@ const Start = (io, socket, map) => {
             }
             date = new Date().toISOString().slice(0, 19).replace('T', ' ')
             sequelize.query(`INSERT INTO histories(winner, loser, history, first, winPoint, losePoint, createdAt, updatedAt) VALUES ('${winner}', '${loser}', '${history}', '${first}', ${winPoint}, ${losePoint}, '${date}', '${date}')`)
+            hostSocket.emit('information', {
+                username : hostSocket.user.username,
+                elo: hostSocket.user.elo,
+                imageUrl : hostSocket.user.imageUrl
+            })
+            joinSocket.emit('information', {
+                username : joinSocket.user.username,
+                elo: joinSocket.user.elo,
+                imageUrl : joinSocket.user.imageUrl
+            })
         }
     })
 }
