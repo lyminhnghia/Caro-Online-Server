@@ -9,7 +9,7 @@ const Statistic = (socket) => {
         result.win = socket.user.win
         result.lose = socket.user.lose
 
-        result.history = await sequelize.query(`SELECT * FROM histories WHERE winner = '${socket.user.username}' OR loser = '${socket.user.username}' ORDER BY id DESC LIMIT 5`,{
+        result.history = await sequelize.query(`SELECT * FROM histories WHERE winner = '${socket.user.username}' OR loser = '${socket.user.username}' ORDER BY id DESC LIMIT 10`,{
             type: sequelize.QueryTypes.SELECT
         })
 
