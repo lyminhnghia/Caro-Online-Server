@@ -26,8 +26,8 @@ checkUsername = (req, res, next) => {
 	Username = req.body.username
 	if (Username.length < 6) {
 		return res.send({success: false, message: 'Username length >= 6'})
-	} else if (Username.length > 20) {
-		return res.send({success: false, message: 'Username length <= 20'})
+	} else if (Username.length > 15) {
+		return res.send({success: false, message: 'Username length <= 15'})
 	}
 	next()
 }
@@ -36,8 +36,8 @@ checkPassword = (req, res, next) => {
 	Password = req.body.password
 	if (Password.length < 6) {
 		return res.send({success: false, message: 'Password length >= 6'})
-	} else if (Password.length > 20) {
-		return res.send({success: false, message: 'Password length <= 20'})
+	} else if (Password.length > 15) {
+		return res.send({success: false, message: 'Password length <= 15'})
 	}
 	next()
 }
