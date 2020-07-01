@@ -21,7 +21,7 @@ const Room = (io, socket) => {
         room.ready = false
     
         // thông báo thay đổi cho mọi người
-        io.to(room.hostname).emit('room', {
+        io.emit('room', {
             username        : room.hostname,
             havePassword    : room.password !== '',
             timelapse       : room.timelapse,

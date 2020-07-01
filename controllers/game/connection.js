@@ -30,29 +30,25 @@ module.exports = (io) => {
         timeout: 10000
     })).on('authenticated', async socket => {
 
-        user = (await sequelize.query(`Select username, elo, win, lose, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
+        socket.user = (await sequelize.query(`Select username, elo, win, lose, imageUrl from users WHERE id = ${socket.decoded_token.id}`,{
             type: sequelize.QueryTypes.SELECT
         }))[0]
 
         // Nếu đã đăng nhập thì ngắt kết nối
-        if (map[user.username]) {
+        if (map[socket.user.username]) {
             socket.disconnect()
             return
         }
 
         // liên kết username với socket
-        map[user.username] = socket
+        map[socket.user.username] = socket
 
         // gắn thông tin user, room, challenge cho socket
-        socket.user = user
         socket.room = null
         socket.challenge = []
 
         // gửi thông báo cho mọi người là đang online
         Player(socket, false)
-
-        // gửi thông tin user lúc bắt đầu và khi có yêu cầu
-        Information(socket)
 
         // gửi hình ảnh cho người dùng
         Image(socket)
@@ -102,6 +98,8 @@ module.exports = (io) => {
         // xử lý khi mất kết nối
         Disconnect(socket, map)
 
+        // gửi thông tin user lúc bắt đầu và khi có yêu cầu
+        Information(socket)
     })
 
 }
